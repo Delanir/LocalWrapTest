@@ -249,7 +249,6 @@ function loaded() {
       function refreshEntityListObject() {
           refreshEntityListTimer = null;
           entityList.sort(currentSortColumn, { order: currentSortOrder });
-          entityList.search(elFilter.value);
           refreshFooter();
       }
 
@@ -279,22 +278,18 @@ function loaded() {
       elRefresh.onclick = function() {
           refreshEntities();
       }
-      elToggleLocked.onclick = function () {
-          EventBridge.emitWebEvent(JSON.stringify({ type: 'toggleLocked' }));
-      }
-      elToggleVisible.onclick = function () {
-          EventBridge.emitWebEvent(JSON.stringify({ type: 'toggleVisible' }));
-      }
-      elExport.onclick = function() {
-          EventBridge.emitWebEvent(JSON.stringify({ type: 'export'}));
-      }
-      elPal.onclick = function () {
-          EventBridge.emitWebEvent(JSON.stringify({ type: 'pal' }));
+
+      elAddSearch.onclick = function() {
+        EventBridge.emitWebEvent(JSON.stringify({ type: 'addSearch' }));
       }
 
-      elAddSearch = function() {
-        EventBridge.emitWebEvent(JSON.stringify({ type: 'addSearch' }));
-    }
+      elExport.onclick = function() {
+        EventBridge.emitWebEvent(JSON.stringify({ type: 'export' }));
+      }
+
+      elExportPlace.onclick = function() {
+        EventBridge.emitWebEvent(JSON.stringify({ type: 'exportplace' }));
+      }
 
       elDelete.onclick = function() {
           EventBridge.emitWebEvent(JSON.stringify({ type: 'delete' }));
@@ -317,22 +312,6 @@ function loaded() {
               }
           }
       }, false);
-
-      var isFilterInView = false;
-      var FILTER_IN_VIEW_ATTRIBUTE = "pressed";
-      elNoEntitiesInView.style.display = "none";
-      elInView.onclick = function () {
-          isFilterInView = !isFilterInView;
-          if (isFilterInView) {
-              elInView.setAttribute(FILTER_IN_VIEW_ATTRIBUTE, FILTER_IN_VIEW_ATTRIBUTE);
-              elNoEntitiesInView.style.display = "inline";
-          } else {
-              elInView.removeAttribute(FILTER_IN_VIEW_ATTRIBUTE);
-              elNoEntitiesInView.style.display = "none";
-          }
-          EventBridge.emitWebEvent(JSON.stringify({ type: "filterInView", filterInView: isFilterInView }));
-          refreshEntities();
-      }
 
       elRadius.onchange = function () {
           elRadius.value = Math.max(elRadius.value, 0);
@@ -423,8 +402,7 @@ function loaded() {
       };
 
       window.onresize = resize;
-      elFilter.onchange = resize;
-      elFilter.onblur = refreshFooter;
+      
 
 
       var showExtraInfo = false;

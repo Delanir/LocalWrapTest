@@ -18,16 +18,108 @@
     
     var _isTabletFocused = false,
         _shouldRestoreTablet = false,
-        _isTabletDisplayed = false;
-    // onWebEventReceived function
-    
-    // onTabletScreenChanged function
+        _isTabletDisplayed = false,
+        isWrapping = false;
 
-    // onTabletShownChanged function
+    var searchRadius = 2;
+
+    // onWebEventReceived function
+    function onWebEventReceived(event){
+        if (!isWrapping) {
+            print("ERROR: wrapping is deactivated.");
+            return;
+        }
+
+        if (typeof event === "string") {
+            event = JSON.parse(event);
+        }
+        
+        // TODO : Deal with events
+        switch (event.type) {
+            case "delete":
+                print("Delete");
+                break;
+            case "refresh":
+                print("Refresh");
+                break;
+            case "radius":
+                searchRadius = parseFloat(event.radius);
+                print("Search Radius: " + (searchRadius + 0.01) );
+                break;
+            case "addSearch":
+                print("Add Search: " + (searchRadius + 0.01) );
+                break;
+            case "export":
+                print("Export: " + (searchRadius + 0.01) );
+                break;
+            case "exportplace":
+                print("Export & Place: " + (searchRadius + 0.01) );
+                break;
+            default:
+                break;
+        }
+    }    
+    
+    function onTabletShownChanged() {
+        if (_shouldRestoreTablet && tablet.tabletShown) {
+            _shouldRestoreTablet = false;
+            _isTabletFocused = false; 
+            isWrapping = false;
+            HMD.openTablet();
+            onButtonClicked();
+            HMD.openTablet();
+        }
+    }
+
+    function onTabletScreenChanged(type, url) {
+        var TABLET_SCREEN_CLOSED = "Closed";
+        var TABLET_SCREEN_WEB = "Web";
+            
+        _isTabletDisplayed = type !== TABLET_SCREEN_CLOSED;
+        isWrapping = type === TABLET_SCREEN_WEB && url.indexOf("html/polylineList.html") > -1;
+        
+        button.editProperties({ isActive: isWrapping });
+    }
 
     // onButtonClicked function
 
+    function onButtonClicked() {
+    
+        isWrapping = !isWrapping;
+
+        if (!isWrapping) {
+            tablet.gotoHomeScreen();
+        }
+        button.editProperties({ isActive: isWrapping });
+
+        
+        if (isWrapping) {
+            tablet.gotoWebScreen(APP_URL);
+            HMD.openTablet();
+        }
+
+
+    }
+
     // onHmdChanged 
+    function onHmdChanged(isHMDActive) { 
+        var wasHMDActive = Settings.getValue("wasHMDActive", null);        
+        if (isHMDActive !== wasHMDActive) {
+            Settings.setValue("wasHMDActive", isHMDActive);            
+            if (wasHMDActive === null) {
+                return;
+            } else {
+                if (isWrapping) {
+                    _shouldRestoreTablet = true;
+                    //Make sure the tablet is being shown when we try to change the window
+                    while (!tablet.tabletShown) {
+                        HMD.openTablet();
+                    }
+                } 
+            }
+        }
+    }
+
     // Set up
     function setUp() {
         tablet = Tablet.getTablet("com.highfidelity.interface.tablet.system");
@@ -39,7 +131,8 @@
         button = tablet.addButton({
             icon: "icons/tablet-icons/finger-paint-i.svg",
             activeIcon: "icons/tablet-icons/finger-paint-a.svg",
-            text: BUTTON_NAME
+            text: BUTTON_NAME,
+            isActive: isWrapping
         });
 
         button.clicked.connect(onButtonClicked);
