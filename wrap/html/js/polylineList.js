@@ -40,7 +40,7 @@ function loaded() {
 
       elExport = document.getElementById("export");
       elExportPlace = document.getElementById("exportplace");  
-
+      elExportName = document.getElementById("export-name"); 
       elAutoGenerateName = document.getElementById("autogeneratename");
 
       elEntityTable = document.getElementById("entity-table");
@@ -284,12 +284,16 @@ function loaded() {
       }
 
       elExport.onclick = function() {
-        EventBridge.emitWebEvent(JSON.stringify({ type: 'export' }));
+        EventBridge.emitWebEvent(JSON.stringify({ type: 'exportobj' }));
       }
 
       elExportPlace.onclick = function() {
         EventBridge.emitWebEvent(JSON.stringify({ type: 'exportplace' }));
       }
+
+      elExportName.onchange = function() {
+        EventBridge.emitWebEvent(JSON.stringify({ type: 'filenameChanged' , value: elExportName.value}));
+      } 
 
       elDelete.onclick = function() {
           EventBridge.emitWebEvent(JSON.stringify({ type: 'delete' }));

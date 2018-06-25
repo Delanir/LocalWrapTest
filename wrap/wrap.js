@@ -8,6 +8,8 @@
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
 //
 
+/* global Tablet, Entities, Vec3, Graphics, Script, Quat, Assets, HMD */
+
 (function () {
     var tablet,
         button,
@@ -16,15 +18,193 @@
         CONTENT_PATH = SCRIPT_PATH.substr(0, SCRIPT_PATH.lastIndexOf('/')),
         APP_URL = CONTENT_PATH + "/html/polylineList.html";
     
-    var _isTabletFocused = false,
-        _shouldRestoreTablet = false,
-        _isTabletDisplayed = false,
+    var _shouldRestoreTablet = false,
         isWrapping = false;
 
+    // web
+    var MIN_FILENAME_LENGTH = 4;
     var searchRadius = 2;
+    var filename = "testObject";
+
+    var polylines = [];
+    
+    function placeOBJInWorld() {
+
+    }
+
+    function exportOBJFromPolylines(isPlacingInWorld) {
+        var model;
+        // convert polyline linePoints to vertices
+        if (polylines.length >= 1) {
+            var meshes = [];
+            var initialPosition = undefined;
+            var meshOffset = Vec3.ZERO;
+            polylines.forEach(function(polyline) {
+                if (initialPosition === undefined) {
+                    initialPosition = polyline.position;
+                } else {
+                    meshOffset = Vec3.subtract(polyline.position, initialPosition);
+                }
+                var linePoints = polyline.linePoints;
+                var normals = polyline.normals;
+                var strokeWidths = polyline.strokeWidths;
+                var colors = polyline.strokeColors;
+                var isUVModeStretch = polyline.isUVModeStretch;
+                
+                var vertices = [];
+                var normalsForVertices = [];
+                var colorsForVertices = [];
+                var texCoords0ForVertices = [];
+                var binormal;
+                var tangent;
+                var i;
+                var size = linePoints.length;
+
+                var uCoordInc = 1.0 / size;
+                var uCoord = 0.0;
+
+                var accumulatedDistance = 0.0;
+                var distanceToLastPoint = 0.0;
+                var accumulatedStrokeWidth = 0.0;
+                var strokeWidth = 0.0;
+                var doesStrokeWidthVary = false;
+                var textureAspectRatio = 1.0;
+
+                for (i = 1; i < strokeWidths.length; i++) {
+                    if (strokeWidths[i] !== strokeWidths[i - 1]) {
+                        doesStrokeWidthVary = true;
+                        break;
+                    }
+                }
+
+                for (i = 0; i < linePoints.length ; i++){
+                    var vertexIndex = i * 2;
+                    if (i < linePoints.length - 1) {
+                        tangent = Vec3.subtract(linePoints[i + 1], linePoints[i]);
+                        binormal = Vec3.multiply(Vec3.normalize(Vec3.cross(tangent, normals[i])), strokeWidths[i]);
+                        if (isNaN(binormal.x)) {
+                            continue;
+                        }
+                    }
+                    
+                    // add the 2 vertices
+                    vertices.push(Vec3.sum(Vec3.sum(linePoints[i], binormal), meshOffset));
+                    vertices.push(Vec3.sum(Vec3.subtract(linePoints[i], binormal), meshOffset));
+                    
+                    normalsForVertices.push(normals[i]);
+                    normalsForVertices.push(normals[i]);
+
+                    // Color
+                    var color = {x: 0, y: 0.0, z: 0.0};
+                    if (colors.length > 1) {
+                        colorsForVertices.push(colors[i]);
+                        colorsForVertices.push(colors[i]);
+                    } else {
+                        color.x = polyline.color.red / 256;
+                        color.y = polyline.color.green / 256;
+                        color.z = polyline.color.blue / 256;
+                        colorsForVertices.push(color);
+                        colorsForVertices.push(color);
+                    }
+                    
+                    // UVs
+                    if (isUVModeStretch && vertexIndex >= 2) {
+                        // stretch
+                        uCoord += uCoordInc;
+                        
+                    } else if (!isUVModeStretch && i>= 1) {
+                        // repeat
+                        distanceToLastPoint = Vec3.distance(linePoints[i], linePoints[i-1]);
+                        accumulatedDistance += distanceToLastPoint;
+                        strokeWidth = 2 * strokeWidths[i];
+
+                        if (doesStrokeWidthVary) {
+                            // If the stroke varies along the line the texture will stretch more or less depending on the speed
+                            // because it looks better than using the same method as below
+                            accumulatedStrokeWidth += strokeWidth;
+                            var increaseValue = 1;
+                            if (accumulatedStrokeWidth !== 0) {
+                                var newUcoord = Math.ceil(
+                                    ((1.0 / textureAspectRatio) * accumulatedDistance) / 
+                                    (accumulatedStrokeWidth / i)
+                                );
+                                increaseValue = newUcoord - uCoord;
+                            }
+                            increaseValue = increaseValue > 0 ? increaseValue : 1;
+                            uCoord += increaseValue;
+                        }
+                    }
+                    
+                    texCoords0ForVertices.push({x: uCoord, y: 0.0});
+                    texCoords0ForVertices.push({x: uCoord, y: 1.0});
+
+                }
+
+                meshes.push( 
+                    Graphics.newMesh(
+                        meshDataForPolyline(vertices, normalsForVertices, colorsForVertices, texCoords0ForVertices, false)
+                    )
+                );
+                meshes.push(
+                    Graphics.newMesh(
+                        meshDataForPolyline(vertices, normalsForVertices, colorsForVertices, texCoords0ForVertices, true)
+                    )
+                );
+            });
+            model = Graphics.newModel(meshes);
+            
+            Assets.putAsset({
+                data: Graphics.exportModelToOBJ(model),
+                path: "/"+ filename +".obj"
+            }, uploadDataCallback);
+
+            if (isPlacingInWorld) {
+                placeOBJInWorld();
+            }
+        } else {
+            print("No Polylines Selected.")
+        }
+    }
+
+    function uploadDataCallback(url, hash) {
+    }
+    
+    function meshDataForPolyline(vertices, normals, colors, texCoords0, isInverted) {
+        
+        // algorithm to create indices
+        var sequenceIndex = isInverted ? 1 : 0;
+        
+        // 0, 1, 2, 1, 3, 2, 2,3,4, 3, 5, 4
+        var indices = [];
+        for (var i = 0; i < vertices.length - 2; i++) {
+            if (i % 2 === sequenceIndex) {
+                indices.push(i);
+                indices.push(i + 1);
+                indices.push(i + 2);
+            } else {
+                indices.push(i);
+                indices.push(i + 2);
+                indices.push(i + 1);
+            }
+        }
+    
+        var mesh = {
+            name: "PolylineWrap",
+            topology: "triangles",
+            indices: indices,
+            positions: vertices,
+            normals: normals,
+            colors: colors,
+            texCoords0: texCoords0
+        };
+        return mesh;
+    }
+
+
+    // tablet connection
 
     // onWebEventReceived function
-    function onWebEventReceived(event){
+    function onWebEventReceived(event) {
         if (!isWrapping) {
             print("ERROR: wrapping is deactivated.");
             return;
@@ -49,11 +229,19 @@
             case "addSearch":
                 print("Add Search: " + (searchRadius + 0.01) );
                 break;
-            case "export":
+            case "exportobj":
                 print("Export: " + (searchRadius + 0.01) );
+                exportOBJFromPolylines(false);
                 break;
             case "exportplace":
                 print("Export & Place: " + (searchRadius + 0.01) );
+                exportOBJFromPolylines(true);
+                break;
+            case "filenameChanged":
+                if (event.value.length >= MIN_FILENAME_LENGTH ){
+                    filename = event.value;
+                    print("Changing filename: " + filename);
+                }
                 break;
             default:
                 break;

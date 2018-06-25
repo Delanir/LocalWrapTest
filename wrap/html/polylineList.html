@@ -115,7 +115,8 @@
        
         <div id="entity-export-settings">
             <div id="entity-filename">
-                <input type="text" class="export" id="export-name" placeholder="file output name (object.obj)" />
+                <input type="text" class="export" id="export-name" required
+                minLength="4" maxLength="64" placeholder="file output name" />
                 <input type="button" id="autogeneratename" value="Auto Generate Filename" />
             </div>
             <div id="entity-export">
