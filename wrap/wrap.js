@@ -34,7 +34,6 @@
     
         // FUNCTION: HANDLE ENTITY SELECTION TOOL UDPATES
         function handleEntitySelectionToolUpdates(channel, message, sender) {
-            print("HERE I AM Selection Manager");
             if (channel !== 'entityToolUpdates') {
                 return;
             }
@@ -266,8 +265,17 @@
     var selectedPolylines = [];
     var polylines = [];
     
-    function placeOBJInWorld() {
-
+    function placeOBJInWorld(url) {
+        Entities.addEntity({
+            type: "Model",
+            modelURL: "atp:"+ url,
+            position: Vec3.sum(MyAvatar.position, Vec3.multiplyQbyV(MyAvatar.orientation, { x: 0, y: 0.75, z: -5 })),
+            dimensions: { x: 1, y: 1, z: 1 },
+            dynamic: true,
+            collisionless: false,
+            userData: "{ \"grabbableKey\": { \"grabbable\": true, \"kinematic\": false } }",
+            lifetime: 300  // Delete after 5 minutes.
+        });
     }
 
     function removeSelectedPolylines() {
@@ -350,7 +358,8 @@
             var meshes = [];
             var initialPosition = undefined;
             var meshOffset = Vec3.ZERO;
-            polylines.forEach(function(polyline) {
+            polylines.forEach(function(id) {
+                var polyline = Entities.getEntityProperties(id);
                 if (initialPosition === undefined) {
                     initialPosition = polyline.position;
                 } else {
@@ -470,7 +479,7 @@
             }, uploadDataCallback);
 
             if (isPlacingInWorld) {
-                placeOBJInWorld();
+                placeOBJInWorld("/"+ filename +".obj");
             }
         } else {
             print("No Polylines Selected.")
