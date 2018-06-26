@@ -1,7 +1,9 @@
-//  entityList.js
-//
+//  polylineList.js
+//  
+//  Created by Daniela Fontes 25 Jun 2018
+//  Based on entityList.js
 //  Created by Ryan Huffman on 19 Nov 2014
-//  Copyright 2014 High Fidelity, Inc.
+//  Copyright 2018 High Fidelity, Inc.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -231,7 +233,7 @@ function loaded() {
 
       function refreshEntities() {
           clearEntities();
-          EventBridge.emitWebEvent(JSON.stringify({ type: 'refresh' }));
+          EventBridge.emitWebEvent(JSON.stringify({ type: 'refreshPolylines' }));
       }
 
       function refreshFooter() {
@@ -296,7 +298,7 @@ function loaded() {
       } 
 
       elDelete.onclick = function() {
-          EventBridge.emitWebEvent(JSON.stringify({ type: 'delete' }));
+          EventBridge.emitWebEvent(JSON.stringify({ type: 'removePolyline' }));
       }
 
       document.addEventListener("keydown", function (keyDownEvent) {
@@ -305,7 +307,7 @@ function loaded() {
           }
           var keyCode = keyDownEvent.keyCode;
           if (keyCode === DELETE) {
-              EventBridge.emitWebEvent(JSON.stringify({ type: 'delete' }));
+              EventBridge.emitWebEvent(JSON.stringify({ type: 'removePolyline' }));
               refreshEntities();
           }
           if (keyDownEvent.keyCode === KEY_P && keyDownEvent.ctrlKey) {
@@ -328,14 +330,14 @@ function loaded() {
           EventBridge.scriptEventReceived.connect(function(data) {
               data = JSON.parse(data);
 
-              if (data.type === "clearEntityList") {
+              if (data.type === "clearPolylineList") {
                   clearEntities();
-              } else if (data.type == "selectionUpdate") {
+              } else if (data.type == "selectionUpdatePolylines") {
                   var notFound = updateSelectedEntities(data.selectedIDs);
                   if (notFound) {
                       refreshEntities();
                   }
-              } else if (data.type == "update") {
+              } else if (data.type == "updatePolylines") {
                   var newEntities = data.entities;
                   if (newEntities && newEntities.length == 0) {
                       elNoEntitiesMessage.style.display = "block";
@@ -356,10 +358,10 @@ function loaded() {
                       updateSelectedEntities(data.selectedIDs);
                       resize();
                   }
-              } else if (data.type === "deleted") {
+              } else if (data.type === "polylinesRemoved") {
                   for (i = 0, length = data.ids.length; i < length; i++) {
                       // We just want to remove from the list
-                      //delete entities[data.ids[i]];
+                      delete entities[data.ids[i]];
                       entityList.remove("id", data.ids[i]);
                   }
                   refreshFooter();
