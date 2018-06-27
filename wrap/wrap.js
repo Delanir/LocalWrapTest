@@ -26,41 +26,41 @@
     SelectionManager = (function() {
         var that = {};
         
-        // FUNCTION: SUBSCRIBE TO UPDATE MESSAGES
-        function subscribeToUpdateMessages() {
-            Messages.subscribe("entityToolUpdates");
-            Messages.messageReceived.connect(handleEntitySelectionToolUpdates);
-        }
+        // // FUNCTION: SUBSCRIBE TO UPDATE MESSAGES
+        // function subscribeToUpdateMessages() {
+        //     Messages.subscribe("entityToolUpdates");
+        //     Messages.messageReceived.connect(handleEntitySelectionToolUpdates);
+        // }
     
-        // FUNCTION: HANDLE ENTITY SELECTION TOOL UDPATES
-        function handleEntitySelectionToolUpdates(channel, message, sender) {
-            if (channel !== 'entityToolUpdates') {
-                return;
-            }
-            if (sender !== MyAvatar.sessionUUID) {
-                return;
-            }
+        // // FUNCTION: HANDLE ENTITY SELECTION TOOL UDPATES
+        // function handleEntitySelectionToolUpdates(channel, message, sender) {
+        //     if (channel !== 'entityToolUpdates') {
+        //         return;
+        //     }
+        //     if (sender !== MyAvatar.sessionUUID) {
+        //         return;
+        //     }
     
-            var wantDebug = false;
-            var messageParsed;
-            try {
-                messageParsed = JSON.parse(message);
-            } catch (err) {
-                print("ERROR: entitySelectionTool.handleEntitySelectionToolUpdates - got malformed message: " + message);
-                return;
-            }
+        //     var wantDebug = false;
+        //     var messageParsed;
+        //     try {
+        //         messageParsed = JSON.parse(message);
+        //     } catch (err) {
+        //         print("ERROR: entitySelectionTool.handleEntitySelectionToolUpdates - got malformed message: " + message);
+        //         return;
+        //     }
     
-            if (messageParsed.method === "selectEntity") {
-                if (wantDebug) {
-                    print("setting selection to " + messageParsed.entityID);
-                }
-                that.setSelections([messageParsed.entityID]);
-            } else if (messageParsed.method === "clearSelection") {
-                that.clearSelections();
-            }
-        }
+        //     if (messageParsed.method === "selectEntity") {
+        //         if (wantDebug) {
+        //             print("setting selection to " + messageParsed.entityID);
+        //         }
+        //         that.setSelections([messageParsed.entityID]);
+        //     } else if (messageParsed.method === "clearSelection") {
+        //         that.clearSelections();
+        //     }
+        // }
     
-        subscribeToUpdateMessages();
+        // subscribeToUpdateMessages();
     
         var COLOR_ORANGE_HIGHLIGHT = { red: 255, green: 99, blue: 9 }
         var editHandleOutlineStyle = {
@@ -618,6 +618,7 @@
         isWrapping = !isWrapping;
 
         if (!isWrapping) {
+            selectionManager.clearSelections();
             tablet.gotoHomeScreen();
         }
         button.editProperties({ isActive: isWrapping });
@@ -678,6 +679,8 @@
         if (!tablet) {
             return;
         }
+        selectionManager.clearSelections();
+
         tablet.webEventReceived.disconnect(onWebEventReceived);
         tablet.screenChanged.disconnect(onTabletScreenChanged);
         tablet.tabletShownChanged.disconnect(onTabletShownChanged);
