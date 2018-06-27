@@ -127,7 +127,7 @@ function loaded() {
           this.className = 'selected';
 
           EventBridge.emitWebEvent(JSON.stringify({
-              type: "selectionUpdate",
+              type: "selectionUpdatePolylines",
               focus: false,
               entityIds: selection,
           }));
@@ -137,7 +137,7 @@ function loaded() {
 
       function onRowDoubleClicked() {
           EventBridge.emitWebEvent(JSON.stringify({
-              type: "selectionUpdate",
+              type: "selectionUpdatePolylines",
               focus: true,
               entityIds: [this.dataset.entityId],
           }));

@@ -114,7 +114,6 @@
             for (var i = 0; i < entityIDs.length; i++) {
                 var entityID = entityIDs[i];
                 that.selections.push(entityID);
-                Selection.addToSelectedItemsList(HIGHLIGHT_LIST_NAME, "entity", entityID);
             }
     
             that._update(true);
@@ -131,10 +130,8 @@
                 }
                 if (idx === -1) {
                     that.selections.push(entityID);
-                    Selection.addToSelectedItemsList(HIGHLIGHT_LIST_NAME, "entity", entityID);
                 } else if (toggleSelection) {
                     that.selections.splice(idx, 1);
-                    Selection.removeFromSelectedItemsList(HIGHLIGHT_LIST_NAME, "entity", entityID);
                 }
             }
     
@@ -145,7 +142,6 @@
             var idx = that.selections.indexOf(entityID);
             if (idx >= 0) {
                 that.selections.splice(idx, 1);
-                Selection.removeFromSelectedItemsList(HIGHLIGHT_LIST_NAME, "entity", entityID);
             }
         }
     
@@ -201,7 +197,6 @@
     
                 that.entityType = properties.type;
     
-                SelectionDisplay.setSpaceMode(SPACE_LOCAL);
             } else {
                 that.localRotation = null;
                 that.localDimensions = null;
@@ -238,8 +233,6 @@
                     z: brn.z + (that.worldDimensions.z / 2)
                 };
     
-                // For 1+ selections we can only modify selections in world space
-                SelectionDisplay.setSpaceMode(SPACE_WORLD);
             }
     
             for (var j = 0; j < listeners.length; j++) {
@@ -281,6 +274,26 @@
     function removeSelectedPolylines() {
         // remove selectedPolylines from polylines
         var removedIDS = [];
+        var i;
+        for (i = 0; i < selectionManager.selections.length; i++) {
+            removedIDS.push(selectionManager.selections[i]);
+        }
+        print("PRE Polylines length. " + selectionManager.selections.length);
+        for (i = 0; i < removedIDS.length; i++) {
+            var idx = polylines.indexOf(removedIDS[i]);
+            if (idx >= 0) {
+                polylines.splice(idx, 1); 
+            }
+        }
+        print("Polylines length. " + polylines.length);
+        selectionManager.removeEntities(removedIDS);
+
+        var data = {
+            type: 'polylinesRemoved',
+            ids: removedIDS,
+        };
+        tablet.emitScriptEvent(JSON.stringify(data));
+        sendUpdate();
         return removedIDS;
     }
 
@@ -298,7 +311,7 @@
         tablet.emitScriptEvent(JSON.stringify(data));
     });
 
-    function clearPolylineList () {
+    function clearPolylineList() {
         var data = {
             type: 'clearPolylineList'
         };
@@ -584,6 +597,9 @@
                     filename = event.value;
                     print("Changing filename: " + filename);
                 }
+                break;
+            case "selectionUpdatePolylines":
+                selectionManager.setSelections(event.entityIds);
                 break;
             default:
                 break;
