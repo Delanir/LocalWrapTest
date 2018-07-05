@@ -162,7 +162,7 @@
                 placeOBJInWorld();
             }
         } else {
-            print("No Polylines Selected.")
+            print("No Polylines Selected.");
         }
     }
 
