@@ -533,6 +533,7 @@
 
     function exportOBJFromPolylines(isPlacingInWorld) {
         var model;
+        print("POLYLINES LENGHTH + " + polylines.length)
         // convert polyline linePoints to vertices
         if (polylines.length >= 1) {
             var meshes = [];
@@ -653,7 +654,14 @@
             });
             model = Graphics.newModel(meshes);
             
+            
+
             Assets.putAsset({
+                data: Graphics.exportModelToOBJ(model),
+                path: "/"+ filename +".obj"
+            }, uploadDataCallback);
+
+            Assets.saveToCache({
                 data: Graphics.exportModelToOBJ(model),
                 path: "/"+ filename +".obj"
             }, uploadDataCallback);
@@ -667,6 +675,7 @@
     }
 
     function uploadDataCallback(url, hash) {
+        placeOBJInWorld("/"+ filename +".obj");
     }
     
     function meshDataForPolyline(vertices, normals, colors, texCoords0, isInverted) {
