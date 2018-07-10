@@ -429,6 +429,7 @@
         Entities.addEntity({
             type: "Model",
             modelURL: "atp:"+ url,
+            shapeType: "simple-compound",
             position: Vec3.sum(MyAvatar.position, Vec3.multiplyQbyV(MyAvatar.orientation, { x: 0, y: 0.75, z: -5 })),
             dimensions: { x: 1, y: 1, z: 1 },
             dynamic: true,
@@ -663,8 +664,12 @@
 
             Assets.saveToCache({
                 data: Graphics.exportModelToOBJ(model),
-                path: "/"+ filename +".obj"
+                path: "atp:/"+ filename +".obj"
             }, uploadDataCallback);
+
+            print("GET ASSET " +JSON.stringify(Assets.getAsset({
+                url: "atp:/"+ filename +".obj"
+            }, uploadDataCallback)));
 
             if (isPlacingInWorld) {
                 placeOBJInWorld("/"+ filename +".obj");
@@ -675,8 +680,8 @@
     }
 
     function uploadDataCallback(url, hash) {
-        placeOBJInWorld("/"+ filename +".obj");
     }
+    
     
     function meshDataForPolyline(vertices, normals, colors, texCoords0, isInverted) {
         
