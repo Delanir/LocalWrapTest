@@ -14,16 +14,17 @@ var currentSortColumn = 'type';
 var currentSortOrder = 'des';
 var entityList = null;
 var refreshEntityListTimer = null;
-const ASCENDING_STRING = '&#x25B4;';
-const DESCENDING_STRING = '&#x25BE;';
-const LOCKED_GLYPH = "&#xe006;";
-const VISIBLE_GLYPH = "&#xe007;";
-const TRANSPARENCY_GLYPH = "&#xe00b;";
-const BAKED_GLYPH = "&#xe01a;"
-const SCRIPT_GLYPH = "k";
-const DELETE = 46; // Key code for the delete key.
-const KEY_P = 80; // Key code for letter p used for Parenting hotkey.
-const MAX_ITEMS = Number.MAX_VALUE; // Used to set the max length of the list of discovered entities.
+
+var ASCENDING_STRING = '&#x25B4;';
+var DESCENDING_STRING = '&#x25BE;';
+var LOCKED_GLYPH = "&#xe006;";
+var VISIBLE_GLYPH = "&#xe007;";
+var TRANSPARENCY_GLYPH = "&#xe00b;";
+var BAKED_GLYPH = "&#xe01a;";
+var SCRIPT_GLYPH = "k";
+var DELETE = 46; // Key code for the delete key.
+var KEY_P = 80; // Key code for letter p used for Parenting hotkey.
+var MAX_ITEMS = Number.MAX_VALUE; // Used to set the max length of the list of discovered entities.
 
 debugPrint = function (message) {
     console.log(message);
@@ -63,33 +64,7 @@ function loaded() {
       document.getElementById("entity-url").onclick = function() {
           setSortColumn('url');
       };
-      document.getElementById("entity-locked").onclick = function () {
-          setSortColumn('locked');
-      };
-      document.getElementById("entity-visible").onclick = function () {
-          setSortColumn('visible');
-      };
-      document.getElementById("entity-verticesCount").onclick = function () {
-          setSortColumn('verticesCount');
-      };
-      document.getElementById("entity-texturesCount").onclick = function () {
-          setSortColumn('texturesCount');
-      };
-      document.getElementById("entity-texturesSize").onclick = function () {
-          setSortColumn('texturesSize');
-      };
-      document.getElementById("entity-hasTransparent").onclick = function () {
-          setSortColumn('hasTransparent');
-      };
-      document.getElementById("entity-isBaked").onclick = function () {
-          setSortColumn('isBaked');
-      };
-      document.getElementById("entity-drawCalls").onclick = function () {
-          setSortColumn('drawCalls');
-      };
-      document.getElementById("entity-hasScript").onclick = function () {
-          setSortColumn('hasScript');
-      };
+      
 
       function onRowClicked(clickEvent) {
           var id = this.dataset.entityId;
@@ -143,7 +118,7 @@ function loaded() {
           }));
       }
 
-      const BYTES_PER_MEGABYTE = 1024 * 1024;
+      var BYTES_PER_MEGABYTE = 1024 * 1024;
 
       function decimalMegabytes(number) {
           return number ? (number / BYTES_PER_MEGABYTE).toFixed(1) : "";
@@ -207,16 +182,7 @@ function loaded() {
       var elSortOrder = {
           name: document.querySelector('#entity-name .sort-order'),
           type: document.querySelector('#entity-type .sort-order'),
-          url: document.querySelector('#entity-url .sort-order'),
-          locked: document.querySelector('#entity-locked .sort-order'),
-          visible: document.querySelector('#entity-visible .sort-order'),
-          verticesCount: document.querySelector('#entity-verticesCount .sort-order'),
-          texturesCount: document.querySelector('#entity-texturesCount .sort-order'),
-          texturesSize: document.querySelector('#entity-texturesSize .sort-order'),
-          hasTransparent: document.querySelector('#entity-hasTransparent .sort-order'),
-          isBaked: document.querySelector('#entity-isBaked .sort-order'),
-          drawCalls: document.querySelector('#entity-drawCalls .sort-order'),
-          hasScript: document.querySelector('#entity-hasScript .sort-order'),
+          url: document.querySelector('#entity-url .sort-order')
       }
       function setSortColumn(column) {
           if (currentSortColumn == column) {
@@ -386,23 +352,16 @@ function loaded() {
               // Reasonable widths if nothing is displayed
               var tableWidth = document.getElementById("entity-table").offsetWidth - SCROLLABAR_WIDTH;
               if (showExtraInfo) {
-                  ths[0].width = 0.10 * tableWidth;
-                  ths[1].width = 0.20 * tableWidth;
-                  ths[2].width = 0.20 * tableWidth;
-                  ths[3].width = 0.04 * tableWidth;
-                  ths[4].width = 0.04 * tableWidth;
-                  ths[5].width = 0.08 * tableWidth;
-                  ths[6].width = 0.08 * tableWidth;
-                  ths[7].width = 0.10 * tableWidth;
-                  ths[8].width = 0.04 * tableWidth;
-                  ths[9].width = 0.08 * tableWidth;
+                  ths[0].width = 0.30 * tableWidth;
+                  ths[1].width = 0.30 * tableWidth;
+                  ths[2].width = 0.30 * tableWidth;
+                  
                   ths[10].width = 0.04 * tableWidth + SCROLLABAR_WIDTH;
               } else {
-                  ths[0].width = 0.16 * tableWidth;
-                  ths[1].width = 0.34 * tableWidth;
-                  ths[2].width = 0.34 * tableWidth;
-                  ths[3].width = 0.08 * tableWidth;
-                  ths[4].width = 0.08 * tableWidth;
+                  ths[0].width = 0.30 * tableWidth;
+                  ths[1].width = 0.35 * tableWidth;
+                  ths[2].width = 0.35 * tableWidth;
+                  
               }
           }
       };
