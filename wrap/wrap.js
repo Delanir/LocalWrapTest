@@ -8,7 +8,7 @@
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
 //
 
-/* global Tablet, Entities, Vec3, Graphics, Script, Quat, Assets, HMD, SPACE_LOCAL, SelectionManager */
+/* global Tablet, Entities, Vec3, Graphics, Script, Quat, Assets, HMD, SPACE_LOCAL */
 
 (function () {
     var tablet,
@@ -27,7 +27,7 @@
         return toCameraDistance;
     }
     // Selection Manager
-    SelectionManager = (function() {
+    var SelectionManager = (function() {
         var that = {};
         
         var COLOR_SCALE_EDGE = { red:87, green:87, blue:87 };
@@ -62,7 +62,7 @@
             ignoreRayIntersection: true,
             drawInFront: true,
             lineWidth: 0.2
-        }
+        };
         var handleScaleTREdge = Overlays.addOverlay("line3d", handlePropertiesScaleEdge);
         var handleScaleTLEdge = Overlays.addOverlay("line3d", handlePropertiesScaleEdge);
         var handleScaleTFEdge = Overlays.addOverlay("line3d", handlePropertiesScaleEdge);
@@ -96,7 +96,7 @@
             handleScaleNREdge,
             handleScaleNLEdge,
             handleScaleFREdge,
-            handleScaleFLEdge,
+            handleScaleFLEdge
         ];
         // FUNCTION: SET OVERLAYS VISIBLE
         that.setOverlaysVisible = function(isVisible) {
@@ -111,8 +111,6 @@
             if (wantDebug) {
                 print("======> Update Handles =======");
                 print("    Selections Count: " + SelectionManager.selections.length);
-                print("    SpaceMode: " + spaceMode);
-                print("    DisplayMode: " + getMode());
             }
 
             if (SelectionManager.selections.length === 0) {
@@ -125,18 +123,7 @@
                 var position = SelectionManager.worldPosition;
                 var rotation = SelectionManager.worldRotation;
                 var dimensions = SelectionManager.worldDimensions;
-                var rotationInverse = Quat.inverse(rotation);
                 var toCameraDistance = getDistanceToCamera(position);
-
-                var localRotationX = Quat.fromPitchYawRollDegrees(0, 0, -90);
-                var rotationX = Quat.multiply(rotation, localRotationX);
-                worldRotationX = rotationX;
-                var localRotationY = Quat.fromPitchYawRollDegrees(0, 90, 0);
-                var rotationY = Quat.multiply(rotation, localRotationY);
-                worldRotationY = rotationY;
-                var localRotationZ = Quat.fromPitchYawRollDegrees(90, 0, 0);
-                var rotationZ = Quat.multiply(rotation, localRotationZ);
-                worldRotationZ = rotationZ;
 
                 // in HMD we clamp the overlays to the bounding box for now so lasers can hit them
                 var maxHandleDimension = 0;
@@ -144,7 +131,7 @@
                     maxHandleDimension = Math.max(dimensions.x, dimensions.y, dimensions.z);
                 }
                 var rotateDimension = Math.max(maxHandleDimension, toCameraDistance * ROTATE_RING_CAMERA_DISTANCE_MULTIPLE);
-                var rotateDimensions = { x:rotateDimension, y:rotateDimension, z:rotateDimension };
+                
                 // UPDATE SCALE CUBES
                 var scaleCubeOffsetX = SCALE_CUBE_OFFSET * dimensions.x;
                 var scaleCubeOffsetY = SCALE_CUBE_OFFSET * dimensions.y;
@@ -228,22 +215,6 @@
             }
         };
         Script.update.connect(that.updateHandles);
-    
-        var COLOR_ORANGE_HIGHLIGHT = { red: 255, green: 99, blue: 9 }
-        var editHandleOutlineStyle = {
-            outlineUnoccludedColor: COLOR_ORANGE_HIGHLIGHT,
-            outlineOccludedColor: COLOR_ORANGE_HIGHLIGHT,
-            fillUnoccludedColor: COLOR_ORANGE_HIGHLIGHT,
-            fillOccludedColor: COLOR_ORANGE_HIGHLIGHT,
-            outlineUnoccludedAlpha: 1,
-            outlineOccludedAlpha: 0,
-            fillUnoccludedAlpha: 0,
-            fillOccludedAlpha: 0,
-            outlineWidth: 3,
-            isOutlineSmooth: true
-        };
-        //disabling this for now as it is causing rendering issues with the other handle overlays
-        //Selection.enableListHighlight(HIGHLIGHT_LIST_NAME, editHandleOutlineStyle);
     
         that.savedProperties = {};
         that.selections = [];
@@ -341,7 +312,7 @@
                 }
             });
             return duplicatedEntityIDs;
-        }
+        };
     
         that._update = function(selectionUpdated) {
             var properties = null;
@@ -414,7 +385,7 @@
         return that;
     })();
 
-    selectionManager = SelectionManager;
+    var selectionManager = SelectionManager;
 
 
     // web
@@ -422,7 +393,6 @@
     var searchRadius = 10;
     var filename = "testObject";
 
-    var selectedPolylines = [];
     var polylines = [];
     
     function placeOBJInWorld(url) {
@@ -435,7 +405,8 @@
             dynamic: true,
             collisionless: false,
             userData: "{ \"grabbableKey\": { \"grabbable\": true, \"kinematic\": false } }",
-            lifetime: 300  // Delete after 5 minutes.
+            // Delete after 5 minutes.
+            lifetime: 300  
         });
     }
 
@@ -458,7 +429,7 @@
 
         var data = {
             type: 'polylinesRemoved',
-            ids: removedIDS,
+            ids: removedIDS
         };
         tablet.emitScriptEvent(JSON.stringify(data));
         sendUpdate();
@@ -474,7 +445,7 @@
 
         var data = {
             type: 'selectionUpdatePolylines',
-            selectedIDs: selectedIDs,
+            selectedIDs: selectedIDs
         };
         tablet.emitScriptEvent(JSON.stringify(data));
     });
@@ -484,7 +455,7 @@
             type: 'clearPolylineList'
         };
         tablet.emitScriptEvent(JSON.stringify(data));
-    };
+    }
 
     function sendUpdate() {
         var entities = [];
@@ -508,7 +479,7 @@
                 texturesCount: valueIfDefined(properties.renderInfo.texturesCount),
                 texturesSize: valueIfDefined(properties.renderInfo.texturesSize),
                 hasTransparent: valueIfDefined(properties.renderInfo.hasTransparent),
-                isBaked: properties.type == "Model" ? url.toLowerCase().endsWith(".baked.fbx") : false,
+                isBaked: properties.type === "Model" ? url.toLowerCase().endsWith(".baked.fbx") : false,
                 drawCalls: valueIfDefined(properties.renderInfo.drawCalls),
                 hasScript: properties.script !== ""
             });
@@ -523,10 +494,10 @@
         var data = {
             type: "updatePolylines",
             entities: entities,
-            selectedIDs: selectedIDs,
+            selectedIDs: selectedIDs
         };
         tablet.emitScriptEvent(JSON.stringify(data));
-    };
+    }
 
     function valueIfDefined(value) {
         return value !== undefined ? value : "";
@@ -534,7 +505,7 @@
 
     function exportOBJFromPolylines(isPlacingInWorld) {
         var model;
-        print("POLYLINES LENGHTH + " + polylines.length)
+        print("POLYLINES LENGHTH + " + polylines.length);
         // convert polyline linePoints to vertices
         if (polylines.length >= 1) {
             var meshes = [];
@@ -654,8 +625,6 @@
                 );
             });
             model = Graphics.newModel(meshes);
-            
-            
 
             Assets.putAsset({
                 data: Graphics.exportModelToOBJ(model),
@@ -790,7 +759,7 @@
     function onTabletShownChanged() {
         if (_shouldRestoreTablet && tablet.tabletShown) {
             _shouldRestoreTablet = false;
-            _isTabletFocused = false; 
+           
             isWrapping = false;
             HMD.openTablet();
             onButtonClicked();
@@ -799,10 +768,8 @@
     }
 
     function onTabletScreenChanged(type, url) {
-        var TABLET_SCREEN_CLOSED = "Closed";
         var TABLET_SCREEN_WEB = "Web";
             
-        _isTabletDisplayed = type !== TABLET_SCREEN_CLOSED;
         isWrapping = type === TABLET_SCREEN_WEB && url.indexOf("html/polylineList.html") > -1;
         
         button.editProperties({ isActive: isWrapping });
@@ -840,7 +807,7 @@
             } else {
                 if (isWrapping) {
                     _shouldRestoreTablet = true;
-                    //Make sure the tablet is being shown when we try to change the window
+                    // Make sure the tablet is being shown when we try to change the window
                     while (!tablet.tabletShown) {
                         HMD.openTablet();
                     }
