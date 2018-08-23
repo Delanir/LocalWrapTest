@@ -10,7 +10,7 @@
 
 var results = Entities.findEntities(
     MyAvatar.position,
-    100
+    10
 );
 var polyline = null;
 var polylines = [];
@@ -21,6 +21,7 @@ results.forEach(function(entity) {
         // get access to polyline entity properties
         
         polyline = Entities.getEntityProperties(entity); 
+        print("Daantje : " + polyline.textures);
         polylines.push(polyline);
 
     }
@@ -58,6 +59,10 @@ if (polylines.length >= 1) {
     var meshes = [];
     var initialPosition = undefined;
     var meshOffset = Vec3.ZERO;
+    polylines = [polylines[0]];
+    var mtls = [];
+    var textures = [];
+    var polylineIndex = 0;
     polylines.forEach(function(polyline) {
         if (initialPosition === undefined) {
             initialPosition = polyline.position;
@@ -179,16 +184,66 @@ if (polylines.length >= 1) {
                 meshDataForPolylineInv(vertices, normalsForVertices, colorsForVertices, texCoords0ForVertices)
             )
         );
+
+        mtls.push("usemtl polyline"+ polylineIndex);
+        textures.push(polyline.textures);
+
+        polylineIndex++;
        
     });
 
     var number = Math.floor(Math.random() * Math.floor(666));
     model = Graphics.newModel(meshes);
 
-    print("New model: " + Graphics.exportModelToOBJ(model));
+    //print("New model: " + Graphics.exportModelToOBJ(model));
+    var mtl = "";
+    var obj = Graphics.exportModelToOBJ(model);
+    obj = obj.replace( "writeOBJToTextStream", ("writeOBJToTextStream\nmtllib "+"testmodelwrap"+ number +".mtl") );
+    for (var i = 0 ; i< mtls.length; i++) {
+        obj = obj.replace( ("faces::subMeshIndex " +i*2) , ("faces::subMeshIndex " +i*2 +"\n" + mtls[i]) );
+        obj = obj.replace( ("faces::subMeshIndex " +(i*2+1)) , ("faces::subMeshIndex " +(i*2+1) +"\n" + mtls[i]) );
+
+        
+        // var request = new XMLHttpRequest();
+        // request.onreadystatechange = function() {
+        //     print("ready state: ", request.readyState, request.status, request.readyState === request.DONE, request.response);
+        //     if (request.readyState === request.DONE && request.status === 200) {
+        //         print("Got response for high score: "+ request.response);
+        //         Assets.putAsset({
+        //             data: request.response,
+        //             path: "testmodelwrap"+ number+ "/texture"+i 
+        //         }, uploadDataCallback);
+        //     }
+        // };
+        // request.responseType = 'blob';
+        // request.open('GET', "http://mpassets.highfidelity.com/d3985860-e94a-42d8-aa1f-c498b2cebabd-v1/content/brushes/heart.png" );
+        // request.timeout = 10000;
+        // request.send();
+
+        // Assets.putAsset({
+        //     data: Script.resolvePath("http://mpassets.highfidelity.com/d3985860-e94a-42d8-aa1f-c498b2cebabd-v1/content/brushes/heart.png"),
+        //     path: "/testmodelwrap"+ number+ "/texture"+i +".png"
+           
+        // }, uploadDataCallback);
+
+        // mtl += "newmtl polyline"+ i + "\nKd 1.00 1.00 1.00\nmap_Kd " + "/testmodelwrap"+ number+ "/texture"+i +".png"+ "\n";
+
+
+        mtl += "newmtl polyline"+ i + "\nillum 4\nKd 0.00 0.00 0.00\nKa 0.00 0.00 0.00\nTf 1.00 1.00 1.00\nmap_Kd " + "map_Kd_T_Chair_paint_01.jpg"+ "\nNi 1.00\n";
+        //mtl += "newmtl polyline"+ i + "\nKd 0.00 0.00 0.00\nmap_Kd " + textures[i]+ "\n";
+    }
+    print("New model here : " + obj);
+    print("New mtl here : " + mtl);
+
+    print("Conver t " + Script.resolvePath("http://mpassets.highfidelity.com/d3985860-e94a-42d8-aa1f-c498b2cebabd-v1/content/brushes/heart.png") );
     
     Assets.putAsset({
-        data: Graphics.exportModelToOBJ(model),
+        data: mtl,
+        path: "/testmodelwrap"+ number +".mtl"
+    }, uploadDataCallback);
+
+    Assets.putAsset({
+        data: obj,
         path: "/testmodelwrap"+ number +".obj"
     }, uploadDataCallback);
 
@@ -202,7 +257,26 @@ if (polylines.length >= 1) {
         userData: "{ \"grabbableKey\": { \"grabbable\": true, \"kinematic\": false } }",
         lifetime: 300  // Delete after 5 minutes.
     });
+
+    // var materialID = Entities.addEntity({
+    //     type: "Material",
+    //     parentID: entityID,
+    //     materialURL: "http://mpassets.highfidelity.com/d3985860-e94a-42d8-aa1f-c498b2cebabd-v1/content/brushes/heart.png",
+    //     priority: 1,
+    //     materialData: JSON.stringify({
+    //         materialVersion: 1,
+    //         materials: {
+    //             // Can only set albedo on a Shape entity.
+    //             // Value overrides entity's "color" property.
+    //             emissiveMap: "http://mpassets.highfidelity.com/d3985860-e94a-42d8-aa1f-c498b2cebabd-v1/content/brushes/heart.png" // Yellow
+    //         }
+    //     })
+    // });
 }
+
+
+
+
 
 function uploadDataCallback(url, hash) {
     print("" + url);
