@@ -204,21 +204,21 @@ if (polylines.length >= 1) {
         obj = obj.replace( ("faces::subMeshIndex " +(i*2+1)) , ("faces::subMeshIndex " +(i*2+1) +"\n" + mtls[i]) );
 
         
-        // var request = new XMLHttpRequest();
-        // request.onreadystatechange = function() {
-        //     print("ready state: ", request.readyState, request.status, request.readyState === request.DONE, request.response);
-        //     if (request.readyState === request.DONE && request.status === 200) {
-        //         print("Got response for high score: "+ request.response);
-        //         Assets.putAsset({
-        //             data: request.response,
-        //             path: "testmodelwrap"+ number+ "/texture"+i 
-        //         }, uploadDataCallback);
-        //     }
-        // };
-        // request.responseType = 'blob';
-        // request.open('GET', "http://mpassets.highfidelity.com/d3985860-e94a-42d8-aa1f-c498b2cebabd-v1/content/brushes/heart.png" );
-        // request.timeout = 10000;
-        // request.send();
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            print("ready state: ", request.readyState, request.status, request.readyState === request.DONE, request.response);
+            if (request.readyState === request.DONE && request.status === 200) {
+                print("Got response for high score: "+ request.response);
+                Assets.putAsset({
+                    data: request.response,
+                    path: "testmodelwrap"+ number+ "/texture"+i 
+                }, uploadDataCallback);
+            }
+        };
+        request.responseType = 'blob';
+        request.open('GET', "http://mpassets.highfidelity.com/d3985860-e94a-42d8-aa1f-c498b2cebabd-v1/content/brushes/heart.png" );
+        request.timeout = 10000;
+        request.send();
 
         // Assets.putAsset({
         //     data: Script.resolvePath("http://mpassets.highfidelity.com/d3985860-e94a-42d8-aa1f-c498b2cebabd-v1/content/brushes/heart.png"),

@@ -391,7 +391,10 @@
     // web
     var MIN_FILENAME_LENGTH = 4;
     var searchRadius = 10;
-    var filename = "testObject";
+    var filename = "wrapObject";
+    var FILE_NAME_PREFIX = "wrapObject";
+    var WRAPKEY = "wrap/filenumber";
+    var isUsingTextures = false;
 
     var polylines = [];
     
@@ -504,6 +507,15 @@
     }
 
     function exportOBJFromPolylines(isPlacingInWorld) {
+        // Define Filename
+        var currentFileNumber = Settings.getValue(WRAPKEY);
+        if (currentFileNumber === undefined) {
+            currentFileNumber = 1;
+        }
+        filename = FILE_NAME_PREFIX + currentFileNumber;
+        currentFileNumber++;
+        Settings.setValue(WRAPKEY, currentFileNumber);
+
         var model;
         print("POLYLINES LENGHTH + " + polylines.length);
         // convert polyline linePoints to vertices
@@ -511,6 +523,9 @@
             var meshes = [];
             var initialPosition = undefined;
             var meshOffset = Vec3.ZERO;
+            var mtls = [];
+            var textures = [];
+            var polylineIndex = 0;
             polylines.forEach(function(id) {
                 var polyline = Entities.getEntityProperties(id);
                 if (initialPosition === undefined) {
@@ -623,6 +638,11 @@
                         meshDataForPolyline(vertices, normalsForVertices, colorsForVertices, texCoords0ForVertices, true)
                     )
                 );
+
+                mtls.push("usemtl polyline"+ polylineIndex);
+                textures.push(polyline.textures);
+
+                polylineIndex++;
             });
             model = Graphics.newModel(meshes);
 
@@ -747,6 +767,9 @@
                     filename = event.value;
                     print("Changing filename: " + filename);
                 }
+                break;
+            case "isUsingTextures":
+                isUsingTextures = event.value;
                 break;
             case "selectionUpdatePolylines":
                 selectionManager.setSelections(event.entityIds);

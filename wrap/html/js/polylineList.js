@@ -40,7 +40,7 @@ function loaded() {
       elAddSearch = document.getElementById("addSearch");
       elDelete = document.getElementById("delete");
       elRadius = document.getElementById("radius");
-
+      elTexture = document.getElementById("textures");
       elExport = document.getElementById("export");
       elExportPlace = document.getElementById("exportplace");  
       elExportName = document.getElementById("export-name"); 
@@ -261,6 +261,10 @@ function loaded() {
 
       elExportName.onchange = function() {
         EventBridge.emitWebEvent(JSON.stringify({ type: 'filenameChanged' , value: elExportName.value}));
+      } 
+
+      elTexture.onchange = function() {
+        EventBridge.emitWebEvent(JSON.stringify({ type: 'isUsingTextures' , value: elTexture.checked}));
       } 
 
       elDelete.onclick = function() {

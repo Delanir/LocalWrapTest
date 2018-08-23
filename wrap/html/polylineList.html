@@ -34,7 +34,7 @@
         </style>
     </head>
     <body onload='loaded();'>
-        
+        <h2 style="margin-bottom: 10px;">Line Selection</h2>
         <div id="entity-list-header">
             <input type="button" class="glyph" id="refresh" value="F" />
             
@@ -91,10 +91,15 @@
         </div>
        
         <div id="entity-export-settings">
+            <h2 style="margin-top: 25px;">Export Settings</h2>
             <div id="entity-filename">
                 <input type="text" class="export" id="export-name" required
-                minLength="4" maxLength="64" placeholder="file output name" />
+                minLength="4" maxLength="64" placeholder="file output name (disabled)" disabled/>
                 <input type="button" id="autogeneratename" value="Auto Generate Filename" />
+            </div>
+            
+            <div id="entity-textures">
+                <input type="checkbox" style="display:inline-block;" id="textures" value="textures" /> Export Textures
             </div>
             <div id="entity-export">
                 <input type="button" id="export" value="Export OBJ" />
