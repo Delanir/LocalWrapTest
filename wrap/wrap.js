@@ -641,18 +641,44 @@
 
                 mtls.push("usemtl polyline"+ polylineIndex);
                 textures.push(polyline.textures);
+                print("Textures to upload: " + polyline.textures);
 
                 polylineIndex++;
             });
+            // Create Model
             model = Graphics.newModel(meshes);
 
+            // Create .mtl file
+            var obj = Graphics.exportModelToOBJ(model);
+            var mtl = "";
+            if (isUsingTextures) {
+                obj = obj.replace( "writeOBJToTextStream", ("writeOBJToTextStream\nmtllib "+ filename +".mtl") );
+                for (var i = 0 ; i< mtls.length; i++) {
+                    obj = obj.replace( ("faces::subMeshIndex " +i*2) , ("faces::subMeshIndex " +i*2 +"\n" + mtls[i]) );
+                    obj = obj.replace( ("faces::subMeshIndex " +(i*2+1)) , ("faces::subMeshIndex " +(i*2+1) +"\n" + mtls[i]) );
+  
+                    makeRequest(i, textures[i]);
+    
+                    // mtl += "newmtl polyline"+ i + "\nillum 0\nKd 0.00 0.00 0.00\nKa 0.00 0.00 0.00\nTf 1.00 1.00 1.00\nmap_Kd " + filename+ "/texture"+i+".png" + "\nNi 1.00\n";
+                     mtl += "newmtl polyline"+ i + "\nillum 6\nKd 0.50 0.50 0.50\nKa 0.00 0.00 0.00\nmap_Kd "+ filename+ "/texture"+i+".png" + "\nmap_d " + filename+ "/texture"+i+".png" + "\nNi 1.00\n";
+                    // mtl += "newmtl polyline"+ i + "\nillum 6\nKa 0.00 0.00 0.00" + "\nmap_d " + filename+ "/texture"+i+".png" + "\nNi 1.00\n";
+                
+                }
+                print("Check OBJ file: " + obj);
+                print("Check MTL file: " + mtl);
+                Assets.putAsset({
+                    data: mtl,
+                    path: "/"+  filename +".mtl"
+                }, uploadDataCallback);
+            }
+
             Assets.putAsset({
-                data: Graphics.exportModelToOBJ(model),
+                data: obj,
                 path: "/"+ filename +".obj"
             }, uploadDataCallback);
 
             Assets.saveToCache({
-                data: Graphics.exportModelToOBJ(model),
+                data: obj,
                 path: "atp:/"+ filename +".obj"
             }, uploadDataCallback);
 
@@ -667,6 +693,27 @@
             print("No Polylines Selected.");
         }
     }
+
+    function makeRequest(i, textureURL) {
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            print(" iteration " + i);
+            print("ready state: ", request.readyState, request.status, request.readyState === request.DONE, request.response);
+            if (request.readyState === request.DONE && request.status === 200) {
+                print("Got response for high score: "+ request.response.byteLength);
+                print("Got response for high score: "+ JSON.stringify(request.response));
+
+                Assets.putAsset({
+                    data: request.response,
+                    path: "/"+ filename+ "/texture"+i+".png" 
+                }, uploadDataCallback);
+            }
+        };
+        request.responseType = 'arraybuffer';
+        request.open('GET', textureURL );
+        request.timeout = 10000;
+        request.send();
+    };
 
     function uploadDataCallback(url, hash) {
     }
@@ -848,8 +895,8 @@
         tablet.webEventReceived.connect(onWebEventReceived);
         // Tablet button.
         button = tablet.addButton({
-            icon: "icons/tablet-icons/finger-paint-i.svg",
-            activeIcon: "icons/tablet-icons/finger-paint-a.svg",
+            icon: CONTENT_PATH + "/html/icons/wrapping-i.svg",
+            activeIcon: CONTENT_PATH + "/html/icons/wrapping-a.svg",
             text: BUTTON_NAME,
             isActive: isWrapping
         });
