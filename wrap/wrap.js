@@ -395,6 +395,10 @@
     var FILE_NAME_PREFIX = "wrapObject";
     var WRAPKEY = "wrap/filenumber";
     var isUsingTextures = false;
+    var textureCallbackCount = 0;
+    var totalNumberOfTextures = 0;
+    var objInfo;
+    var isPlacingOBJInWorld = false;
 
     var polylines = [];
     
@@ -650,8 +654,11 @@
 
             // Create .mtl file
             var obj = Graphics.exportModelToOBJ(model);
+            objInfo = obj;
             var mtl = "";
             if (isUsingTextures) {
+                textureCallbackCount = 0;
+                totalNumberOfTextures = mtls.length;
                 obj = obj.replace( "writeOBJToTextStream", ("writeOBJToTextStream\nmtllib "+ filename +".mtl") );
                 for (var i = 0 ; i< mtls.length; i++) {
                     obj = obj.replace( ("faces::subMeshIndex " +i*2) , ("faces::subMeshIndex " +i*2 +"\n" + mtls[i]) );
@@ -670,25 +677,20 @@
                     data: mtl,
                     path: "/"+  filename +".mtl"
                 }, uploadDataCallback);
+            } else {
+
+                Assets.putAsset({
+                    data: obj,
+                    path: "/"+ filename +".obj"
+                }, uploadDataCallbackOBJ);
+    
+                Assets.saveToCache({
+                    data: obj,
+                    path: "atp:/"+ filename +".obj"
+                }, uploadDataCallback);
             }
 
-            Assets.putAsset({
-                data: obj,
-                path: "/"+ filename +".obj"
-            }, uploadDataCallback);
-
-            Assets.saveToCache({
-                data: obj,
-                path: "atp:/"+ filename +".obj"
-            }, uploadDataCallback);
-
-            print("GET ASSET " +JSON.stringify(Assets.getAsset({
-                url: "atp:/"+ filename +".obj"
-            }, uploadDataCallback)));
-
-            if (isPlacingInWorld) {
-                placeOBJInWorld("/"+ filename +".obj");
-            }
+            
         } else {
             print("No Polylines Selected.");
         }
@@ -702,11 +704,11 @@
             if (request.readyState === request.DONE && request.status === 200) {
                 print("Got response for high score: "+ request.response.byteLength);
                 print("Got response for high score: "+ JSON.stringify(request.response));
-
+                
                 Assets.putAsset({
                     data: request.response,
                     path: "/"+ filename+ "/texture"+i+".png" 
-                }, uploadDataCallback);
+                }, uploadDataCallbackTextures);
             }
         };
         request.responseType = 'arraybuffer';
@@ -717,7 +719,29 @@
 
     function uploadDataCallback(url, hash) {
     }
+
+    function uploadDataCallbackTextures(url, hash) {
+        textureCallbackCount++;
+        if (textureCallbackCount == totalNumberOfTextures) {
+            Assets.putAsset({
+                data: objInfo,
+                path: "/"+ filename +".obj"
+            }, uploadDataCallbackOBJ);
+
+            Assets.saveToCache({
+                data: objInfo,
+                path: "atp:/"+ filename +".obj"
+            }, uploadDataCallback);
+        }
+    }
     
+    function uploadDataCallbackOBJ(url, hash) {
+        print(" UPLOAD OBJ ");
+        if (isPlacingOBJInWorld) {
+            print(" UPLOAD PLACING WORLD ");
+            placeOBJInWorld("/"+ filename +".obj");
+        }
+    }
     
     function meshDataForPolyline(vertices, normals, colors, texCoords0, isInverted) {
         
@@ -803,10 +827,12 @@
                 break;
             case "exportobj":
                 print("Export: " + (searchRadius + 0.01) );
+                isPlacingOBJInWorld = false;
                 exportOBJFromPolylines(false);
                 break;
             case "exportplace":
                 print("Export & Place: " + (searchRadius + 0.01) );
+                isPlacingOBJInWorld = true;
                 exportOBJFromPolylines(true);
                 break;
             case "filenameChanged":
