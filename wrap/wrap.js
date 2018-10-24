@@ -11,6 +11,11 @@
 /* global Tablet, Entities, Vec3, Graphics, Script, Quat, Assets, HMD, SPACE_LOCAL */
 
 (function () {
+    // Utilities
+    Script.include("./utilities/utilities.js");
+    // Modules
+    Script.include("./modules/hand.js");
+
     var tablet,
         button,
         BUTTON_NAME = "WRAP",
@@ -26,9 +31,16 @@
         var toCameraDistance = Vec3.length(Vec3.subtract(cameraPosition, position));
         return toCameraDistance;
     }
+
+    var LEFT_HAND = 0,
+        RIGHT_HAND = 1;
+    var leftHandController = new Hand(LEFT_HAND);
+    var rightHandController = new Hand(RIGHT_HAND);
+    
     // Selection Manager
     var SelectionManager = (function() {
         var that = {};
+        
         
         var COLOR_SCALE_EDGE = { red:87, green:87, blue:87 };
         var COLOR_SCALE_CUBE = { red:106, green:106, blue:106 };
@@ -37,6 +49,8 @@
         var SCALE_CUBE_CAMERA_DISTANCE_MULTIPLE = 0.015;
 
         var ROTATE_RING_CAMERA_DISTANCE_MULTIPLE = 0.15;
+
+        
 
         var handlePropertiesScaleCubes = {
             size: 0.025,
@@ -110,19 +124,22 @@
             var wantDebug = false;
             if (wantDebug) {
                 print("======> Update Handles =======");
-                print("    Selections Count: " + SelectionManager.selections.length);
+                print("    Selections Count: " + that.selections.length);
+            }
+            if (that.selections === undefined) {
+                return;
             }
 
-            if (SelectionManager.selections.length === 0) {
+            if (that.selections.length === 0) {
                 // TODO
                 that.setOverlaysVisible(false);
                 return;
             }
 
-            if (SelectionManager.hasSelection()) {
-                var position = SelectionManager.worldPosition;
-                var rotation = SelectionManager.worldRotation;
-                var dimensions = SelectionManager.worldDimensions;
+            if (that.hasSelection()) {
+                var position = that.worldPosition;
+                var rotation = that.worldRotation;
+                var dimensions = that.worldDimensions;
                 var toCameraDistance = getDistanceToCamera(position);
 
                 // in HMD we clamp the overlays to the bounding box for now so lasers can hit them
@@ -214,7 +231,9 @@
                 that.setOverlaysVisible(true);
             }
         };
+        
         Script.update.connect(that.updateHandles);
+
     
         that.savedProperties = {};
         that.selections = [];
@@ -387,6 +406,7 @@
 
     var selectionManager = SelectionManager;
 
+    
 
     // web
     var MIN_FILENAME_LENGTH = 4;
@@ -399,8 +419,84 @@
     var totalNumberOfTextures = 0;
     var objInfo;
     var isPlacingOBJInWorld = false;
-
+    var CONTROLLER_SEARCH_RADIUS = 0.25;
+    var UIOverlaysRight = [];
+    var UIOverlaysLeft = [];
     var polylines = [];
+
+    var handSelection = function() {
+        var found = [];
+        leftHandController.update();
+        rightHandController.update();
+        if(leftHandController.gripClicked()) {
+            leftHandController.setGripClickedHandled();
+            found = Entities.findEntitiesByType("PolyLine", MyAvatar.getLeftPalmPosition(), CONTROLLER_SEARCH_RADIUS);
+            
+            found.forEach(function(entityID) {
+                addEntity(entityID, true);
+            });
+            // Selection effect
+            UIOverlaysLeft.push(Overlays.addOverlay("sphere", {
+
+                position: MyAvatar.getLeftPalmPosition(),
+                dimensions: { x: CONTROLLER_SEARCH_RADIUS, y: CONTROLLER_SEARCH_RADIUS, z: CONTROLLER_SEARCH_RADIUS},
+                alpha: 0.5,
+                color: { red: 0, green: 0, blue: 125 }
+                
+            }));
+            Script.setTimeout(function () {
+                UIOverlaysLeft.forEach(function(overlayID) {
+                    Overlays.deleteOverlay(overlayID);
+                });
+                UIOverlaysLeft = [];
+            }, 500);
+
+        }
+        if(rightHandController.gripClicked()) {
+            rightHandController.setGripClickedHandled();
+        
+            found = Entities.findEntitiesByType("PolyLine", MyAvatar.getRightPalmPosition(), CONTROLLER_SEARCH_RADIUS);
+            
+            
+            found.forEach(function(entityID) {
+                addEntity(entityID, true);
+            });
+            UIOverlaysRight.push(Overlays.addOverlay("sphere", {
+
+                position: MyAvatar.getRightPalmPosition(),
+                dimensions: { x: CONTROLLER_SEARCH_RADIUS, y: CONTROLLER_SEARCH_RADIUS, z: CONTROLLER_SEARCH_RADIUS},
+                alpha: 0.5,
+                color: { red: 0, green: 0, blue: 125 }
+                
+            }));
+            Script.setTimeout(function () {
+                UIOverlaysRight.forEach(function(overlayID) {
+                    Overlays.deleteOverlay(overlayID);
+                });
+                UIOverlaysRight = [];
+            }, 500);
+        }
+    }
+    Script.update.connect(handSelection);
+
+    var addEntity = function(entityID, toggleSelection) {
+        if (entityID) {
+            var idx = -1;
+            for (var i = 0; i < polylines.length; i++) {
+                if (entityID === polylines[i]) {
+                    idx = i;
+                    break;
+                }
+            }
+            if (idx === -1) {
+                polylines.push(entityID);
+            } else if (toggleSelection) {
+                polylines.splice(idx, 1);
+            }
+        }
+        
+        sendUpdate();
+    };
     
     function placeOBJInWorld(url) {
         Entities.addEntity({
