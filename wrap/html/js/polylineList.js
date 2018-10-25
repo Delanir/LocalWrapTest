@@ -39,6 +39,7 @@ function loaded() {
       elRefresh = document.getElementById("refresh");
       elAddSearch = document.getElementById("addSearch");
       elDelete = document.getElementById("delete");
+      elDeleteAll = document.getElementById("deleteAll");
       elRadius = document.getElementById("radius");
       elTexture = document.getElementById("textures");
       elExport = document.getElementById("export");
@@ -269,6 +270,10 @@ function loaded() {
 
       elDelete.onclick = function() {
           EventBridge.emitWebEvent(JSON.stringify({ type: 'removePolyline' }));
+      }
+
+      elDeleteAll.onclick = function() {
+        EventBridge.emitWebEvent(JSON.stringify({ type: 'clearList' }));
       }
 
       document.addEventListener("keydown", function (keyDownEvent) {

@@ -449,7 +449,7 @@
                     Overlays.deleteOverlay(overlayID);
                 });
                 UIOverlaysLeft = [];
-            }, 500);
+            }, 300);
 
         }
         if(rightHandController.gripClicked()) {
@@ -474,10 +474,10 @@
                     Overlays.deleteOverlay(overlayID);
                 });
                 UIOverlaysRight = [];
-            }, 500);
+            }, 300);
         }
     }
-    Script.update.connect(handSelection);
+    
 
     var addEntity = function(entityID, toggleSelection) {
         if (entityID) {
@@ -492,6 +492,13 @@
                 polylines.push(entityID);
             } else if (toggleSelection) {
                 polylines.splice(idx, 1);
+                selectionManager.removeEntities([entityID]);
+
+                var data = {
+                    type: 'polylinesRemoved',
+                    ids: [entityID]
+                };
+                tablet.emitScriptEvent(JSON.stringify(data));
             }
         }
         
@@ -943,6 +950,11 @@
             case "selectionUpdatePolylines":
                 selectionManager.setSelections(event.entityIds);
                 break;
+            case "clearList":
+                clearPolylineList();
+                polylines = []
+                sendUpdate();
+                break;
             default:
                 break;
         }
@@ -963,7 +975,14 @@
         var TABLET_SCREEN_WEB = "Web";
             
         isWrapping = type === TABLET_SCREEN_WEB && url.indexOf("html/polylineList.html") > -1;
-        
+        if (HMD.active && !isWrapping) {
+            // Disable hand selection
+            try {
+                Script.update.disconnect(handSelection);
+            } catch (e) {
+                console.warn('Update could not disconnect handSelection');
+            }
+        }
         button.editProperties({ isActive: isWrapping });
     }
 
@@ -975,6 +994,14 @@
 
         if (!isWrapping) {
             selectionManager.clearSelections();
+            if (HMD.active) {
+                // Disable hand selection
+                try {
+                    Script.update.disconnect(handSelection);
+                } catch (e) {
+                    console.warn('Update could not disconnect handSelection');
+                }
+            }
             tablet.gotoHomeScreen();
         }
         button.editProperties({ isActive: isWrapping });
@@ -983,7 +1010,19 @@
         if (isWrapping) {
             tablet.gotoWebScreen(APP_URL);
             HMD.openTablet();
-            addPolylinesFromSearch();
+            // addPolylinesFromSearch();
+            sendUpdate();
+            if (HMD.active) {
+                // Enable Hand Selection
+                Script.update.connect(handSelection);
+            } else {
+                // Disable hand selection
+                try {
+                    Script.update.disconnect(handSelection);
+                } catch (e) {
+                    console.warn('Update could not disconnect handSelection');
+                }
+            }
         }
 
 
@@ -1002,6 +1041,18 @@
                     // Make sure the tablet is being shown when we try to change the window
                     while (!tablet.tabletShown) {
                         HMD.openTablet();
+                    }
+
+                    if (isHMDActive) {
+                        // Enable Hand Selection
+                        Script.update.connect(handSelection);
+                    } else {
+                        // Disable hand selection
+                        try {
+                            Script.update.disconnect(handSelection);
+                        } catch (e) {
+                            console.warn('Update could not disconnect handSelection');
+                        }
                     }
                 } 
             }
@@ -1028,6 +1079,11 @@
         tablet.screenChanged.connect(onTabletScreenChanged);
         tablet.tabletShownChanged.connect(onTabletShownChanged);
         HMD.displayModeChanged.connect(onHmdChanged);
+
+        // set up hand selection
+        if (HMD.active) {
+            Script.update.connect(handSelection);
+        }
     }
 
     // Tear Down
@@ -1042,6 +1098,11 @@
         tablet.tabletShownChanged.disconnect(onTabletShownChanged);
         button.clicked.disconnect(onButtonClicked);
         tablet.removeButton(button);
+        try {
+            Script.update.disconnect(handSelection);
+        } catch (e) {
+            console.warn('Update could not disconnect handSelection');
+        }
     }
 
     setUp();
