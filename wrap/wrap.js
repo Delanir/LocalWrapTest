@@ -305,7 +305,7 @@
 
         // FUNCTION: UPDATE BASE UI
         that.updateBaseOverlays = function() {
-            var wantDebug = true;
+            var wantDebug = false;
             if (wantDebug) {
                 print("======> Update Handles =======");
                 print("    Entities Count: " + that.allEntities.length);
