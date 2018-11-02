@@ -41,9 +41,10 @@
     var SelectionManager = (function() {
         var that = {};
         
-        
-        var COLOR_SCALE_EDGE = { red:87, green:87, blue:87 };
-        var COLOR_SCALE_CUBE = { red:106, green:106, blue:106 };
+        var COLOR_SCALE_EDGE = { red:0, green:102, blue:255 };
+        var COLOR_SCALE_CUBE = { red:0, green:102, blue:255 };
+        var COLOR_SCALE_EDGE_DEFAULT = { red:87, green:87, blue:87 };
+        var COLOR_SCALE_CUBE_DEFAULT = { red:106, green:106, blue:106 };
 
         var SCALE_CUBE_OFFSET = 0.5;
         var SCALE_CUBE_CAMERA_DISTANCE_MULTIPLE = 0.015;
@@ -53,7 +54,7 @@
         
 
         var handlePropertiesScaleCubes = {
-            size: 0.025,
+            size: 0.01,
             color: COLOR_SCALE_CUBE,
             solid: true,
             visible: false,
@@ -70,12 +71,30 @@
         var handleScaleLTFCube = Overlays.addOverlay("cube", handlePropertiesScaleCubes); // (-x,  y,  z)
         var handleScaleRTFCube = Overlays.addOverlay("cube", handlePropertiesScaleCubes); // ( x,  y,  z)
 
+        var basePropertiesScaleCubes = {
+            size: 0.01,
+            color: COLOR_SCALE_CUBE_DEFAULT,
+            solid: true,
+            visible: false,
+            ignoreRayIntersection: false,
+            drawInFront: true,
+            borderSize: 1.4
+        };
+        var baseScaleLBNCube = Overlays.addOverlay("cube", basePropertiesScaleCubes); // (-x, -y, -z)
+        var baseScaleRBNCube = Overlays.addOverlay("cube", basePropertiesScaleCubes); // ( x, -y, -z)
+        var baseScaleLBFCube = Overlays.addOverlay("cube", basePropertiesScaleCubes); // (-x, -y,  z)
+        var baseScaleRBFCube = Overlays.addOverlay("cube", basePropertiesScaleCubes); // ( x, -y,  z)
+        var baseScaleLTNCube = Overlays.addOverlay("cube", basePropertiesScaleCubes); // (-x,  y, -z)
+        var baseScaleRTNCube = Overlays.addOverlay("cube", basePropertiesScaleCubes); // ( x,  y, -z)
+        var baseScaleLTFCube = Overlays.addOverlay("cube", basePropertiesScaleCubes); // (-x,  y,  z)
+        var baseScaleRTFCube = Overlays.addOverlay("cube", basePropertiesScaleCubes); // ( x,  y,  z)
+
         var handlePropertiesScaleEdge = {
             color: COLOR_SCALE_EDGE,
             visible: false,
             ignoreRayIntersection: true,
             drawInFront: true,
-            lineWidth: 0.2
+            lineWidth: 0.5
         };
         var handleScaleTREdge = Overlays.addOverlay("line3d", handlePropertiesScaleEdge);
         var handleScaleTLEdge = Overlays.addOverlay("line3d", handlePropertiesScaleEdge);
@@ -89,6 +108,26 @@
         var handleScaleNLEdge = Overlays.addOverlay("line3d", handlePropertiesScaleEdge);
         var handleScaleFREdge = Overlays.addOverlay("line3d", handlePropertiesScaleEdge);
         var handleScaleFLEdge = Overlays.addOverlay("line3d", handlePropertiesScaleEdge);
+
+        var basePropertiesScaleEdge = {
+            color: COLOR_SCALE_EDGE_DEFAULT,
+            visible: false,
+            ignoreRayIntersection: true,
+            drawInFront: true,
+            lineWidth: 0.5
+        };
+        var baseScaleTREdge = Overlays.addOverlay("line3d", basePropertiesScaleEdge);
+        var baseScaleTLEdge = Overlays.addOverlay("line3d", basePropertiesScaleEdge);
+        var baseScaleTFEdge = Overlays.addOverlay("line3d", basePropertiesScaleEdge);
+        var baseScaleTNEdge = Overlays.addOverlay("line3d", basePropertiesScaleEdge);
+        var baseScaleBREdge = Overlays.addOverlay("line3d", basePropertiesScaleEdge);
+        var baseScaleBLEdge = Overlays.addOverlay("line3d", basePropertiesScaleEdge);
+        var baseScaleBFEdge = Overlays.addOverlay("line3d", basePropertiesScaleEdge);
+        var baseScaleBNEdge = Overlays.addOverlay("line3d", basePropertiesScaleEdge);
+        var baseScaleNREdge = Overlays.addOverlay("line3d", basePropertiesScaleEdge);
+        var baseScaleNLEdge = Overlays.addOverlay("line3d", basePropertiesScaleEdge);
+        var baseScaleFREdge = Overlays.addOverlay("line3d", basePropertiesScaleEdge);
+        var baseScaleFLEdge = Overlays.addOverlay("line3d", basePropertiesScaleEdge);
 
         var allOverlays = [
             handleScaleLBNCube,
@@ -112,10 +151,40 @@
             handleScaleFREdge,
             handleScaleFLEdge
         ];
+
+        var allBaseOverlays = [
+            baseScaleLBNCube,
+            baseScaleRBNCube,
+            baseScaleLBFCube,
+            baseScaleRBFCube,
+            baseScaleLTNCube,
+            baseScaleRTNCube,
+            baseScaleLTFCube,
+            baseScaleRTFCube,
+            baseScaleTREdge,
+            baseScaleTLEdge,
+            baseScaleTFEdge,
+            baseScaleTNEdge,
+            baseScaleBREdge,
+            baseScaleBLEdge,
+            baseScaleBFEdge,
+            baseScaleBNEdge,
+            baseScaleNREdge,
+            baseScaleNLEdge,
+            baseScaleFREdge,
+            baseScaleFLEdge
+        ];
         // FUNCTION: SET OVERLAYS VISIBLE
         that.setOverlaysVisible = function(isVisible) {
             for (var i = 0, length = allOverlays.length; i < length; i++) {
                 Overlays.editOverlay(allOverlays[i], { visible: isVisible });
+            }
+        };
+
+        // FUNCTION: SET OVERLAYS VISIBLE
+        that.setBaseOverlaysVisible = function(isVisible) {
+            for (var i = 0, length = allBaseOverlays.length; i < length; i++) {
+                Overlays.editOverlay(allBaseOverlays[i], { visible: isVisible });
             }
         };
 
@@ -234,9 +303,130 @@
         
         Script.update.connect(that.updateHandles);
 
+        // FUNCTION: UPDATE BASE UI
+        that.updateBaseOverlays = function() {
+            var wantDebug = true;
+            if (wantDebug) {
+                print("======> Update Handles =======");
+                print("    Entities Count: " + that.allEntities.length);
+            }
+            if (that.allEntities === undefined) {
+                return;
+            }
+
+            if (that.allEntities.length === 0) {
+                // TODO
+                that.setBaseOverlaysVisible(false);
+                return;
+            }
+
+            // try to update, if it fails call updateUI
+            try {
+
+                var position = that.worldPositionBase;
+                var rotation = that.worldRotationBase;
+                var dimensions = that.worldDimensionsBase;
+                var toCameraDistance = getDistanceToCamera(position);
+    
+                // in HMD we clamp the overlays to the bounding box for now so lasers can hit them
+                var maxHandleDimension = 0;
+                if (HMD.active) {
+                    maxHandleDimension = Math.max(dimensions.x, dimensions.y, dimensions.z);
+                }
+                var rotateDimension = Math.max(maxHandleDimension, toCameraDistance * ROTATE_RING_CAMERA_DISTANCE_MULTIPLE);
+                
+                // UPDATE SCALE CUBES
+                var scaleCubeOffsetX = SCALE_CUBE_OFFSET * dimensions.x;
+                var scaleCubeOffsetY = SCALE_CUBE_OFFSET * dimensions.y;
+                var scaleCubeOffsetZ = SCALE_CUBE_OFFSET * dimensions.z;
+                var scaleCubeDimension = rotateDimension * SCALE_CUBE_CAMERA_DISTANCE_MULTIPLE / 
+                                                            ROTATE_RING_CAMERA_DISTANCE_MULTIPLE;
+                var scaleCubeDimensions = { x:scaleCubeDimension, y:scaleCubeDimension, z:scaleCubeDimension };
+                var scaleCubeRotation = Quat.IDENTITY;
+                var scaleLBNCubePosition = { x:-scaleCubeOffsetX, y:-scaleCubeOffsetY, z:-scaleCubeOffsetZ };
+                scaleLBNCubePosition = Vec3.sum(position, Vec3.multiplyQbyV(rotation, scaleLBNCubePosition));
+                Overlays.editOverlay(baseScaleLBNCube, { 
+                    position: scaleLBNCubePosition, 
+                    rotation: scaleCubeRotation,
+                    dimensions: scaleCubeDimensions
+                });
+                var scaleRBNCubePosition = { x:scaleCubeOffsetX, y:-scaleCubeOffsetY, z:-scaleCubeOffsetZ };
+                scaleRBNCubePosition = Vec3.sum(position, Vec3.multiplyQbyV(rotation, scaleRBNCubePosition));
+                Overlays.editOverlay(baseScaleRBNCube, { 
+                    position: scaleRBNCubePosition, 
+                    rotation: scaleCubeRotation,
+                    dimensions: scaleCubeDimensions
+                });
+                var scaleLBFCubePosition = { x:-scaleCubeOffsetX, y:-scaleCubeOffsetY, z:scaleCubeOffsetZ };
+                scaleLBFCubePosition = Vec3.sum(position, Vec3.multiplyQbyV(rotation, scaleLBFCubePosition));
+                Overlays.editOverlay(baseScaleLBFCube, { 
+                    position: scaleLBFCubePosition, 
+                    rotation: scaleCubeRotation,
+                    dimensions: scaleCubeDimensions
+                });
+                var scaleRBFCubePosition = { x:scaleCubeOffsetX, y:-scaleCubeOffsetY, z:scaleCubeOffsetZ };
+                scaleRBFCubePosition = Vec3.sum(position, Vec3.multiplyQbyV(rotation, scaleRBFCubePosition));
+                Overlays.editOverlay(baseScaleRBFCube, { 
+                    position: scaleRBFCubePosition, 
+                    rotation: scaleCubeRotation,
+                    dimensions: scaleCubeDimensions
+                });
+                var scaleLTNCubePosition = { x:-scaleCubeOffsetX, y:scaleCubeOffsetY, z:-scaleCubeOffsetZ };
+                scaleLTNCubePosition = Vec3.sum(position, Vec3.multiplyQbyV(rotation, scaleLTNCubePosition));
+                Overlays.editOverlay(baseScaleLTNCube, { 
+                    position: scaleLTNCubePosition, 
+                    rotation: scaleCubeRotation,
+                    dimensions: scaleCubeDimensions
+                });
+                var scaleRTNCubePosition = { x:scaleCubeOffsetX, y:scaleCubeOffsetY, z:-scaleCubeOffsetZ };
+                scaleRTNCubePosition = Vec3.sum(position, Vec3.multiplyQbyV(rotation, scaleRTNCubePosition));
+                Overlays.editOverlay(baseScaleRTNCube, { 
+                    position: scaleRTNCubePosition, 
+                    rotation: scaleCubeRotation,
+                    dimensions: scaleCubeDimensions
+                });
+                var scaleLTFCubePosition = { x:-scaleCubeOffsetX, y:scaleCubeOffsetY, z:scaleCubeOffsetZ };
+                scaleLTFCubePosition = Vec3.sum(position, Vec3.multiplyQbyV(rotation, scaleLTFCubePosition));
+                Overlays.editOverlay(baseScaleLTFCube, { 
+                    position: scaleLTFCubePosition, 
+                    rotation: scaleCubeRotation,
+                    dimensions: scaleCubeDimensions
+                });
+                var scaleRTFCubePosition = { x:scaleCubeOffsetX, y:scaleCubeOffsetY, z:scaleCubeOffsetZ };
+                scaleRTFCubePosition = Vec3.sum(position, Vec3.multiplyQbyV(rotation, scaleRTFCubePosition));
+                Overlays.editOverlay(baseScaleRTFCube, { 
+                    position: scaleRTFCubePosition, 
+                    rotation: scaleCubeRotation,
+                    dimensions: scaleCubeDimensions
+                });
+                
+    
+                // UPDATE SCALE EDGES
+                Overlays.editOverlay(baseScaleTREdge, { start: scaleRTNCubePosition, end: scaleRTFCubePosition });
+                Overlays.editOverlay(baseScaleTLEdge, { start: scaleLTNCubePosition, end: scaleLTFCubePosition });
+                Overlays.editOverlay(baseScaleTFEdge, { start: scaleLTFCubePosition, end: scaleRTFCubePosition });
+                Overlays.editOverlay(baseScaleTNEdge, { start: scaleLTNCubePosition, end: scaleRTNCubePosition });
+                Overlays.editOverlay(baseScaleBREdge, { start: scaleRBNCubePosition, end: scaleRBFCubePosition });
+                Overlays.editOverlay(baseScaleBLEdge, { start: scaleLBNCubePosition, end: scaleLBFCubePosition });
+                Overlays.editOverlay(baseScaleBFEdge, { start: scaleLBFCubePosition, end: scaleRBFCubePosition });
+                Overlays.editOverlay(baseScaleBNEdge, { start: scaleLBNCubePosition, end: scaleRBNCubePosition });
+                Overlays.editOverlay(baseScaleNREdge, { start: scaleRTNCubePosition, end: scaleRBNCubePosition });
+                Overlays.editOverlay(baseScaleNLEdge, { start: scaleLTNCubePosition, end: scaleLBNCubePosition });
+                Overlays.editOverlay(baseScaleFREdge, { start: scaleRTFCubePosition, end: scaleRBFCubePosition });
+                Overlays.editOverlay(baseScaleFLEdge, { start: scaleLTFCubePosition, end: scaleLBFCubePosition });
+    
+                that.setBaseOverlaysVisible(true);
+            } catch (e) {
+                that.updateBaseUI(false);
+            }
+            
+        };
+
+        Script.update.connect(that.updateBaseOverlays);
     
         that.savedProperties = {};
         that.selections = [];
+        that.allEntities = [];
         var listeners = [];
     
         that.localRotation = Quat.IDENTITY;
@@ -318,6 +508,13 @@
             that.selections = [];
             that._update(true);
         };
+
+        that.clearBaseOverlays  = function() {
+            that.setBaseOverlaysVisible(false);
+            that.allEntities = [];
+            that.updateBaseUI(true);
+        };
+
     
         that.duplicateSelection = function() {
             var duplicatedEntityIDs = [];
@@ -399,6 +596,67 @@
                     print("ERROR: entitySelectionTool.update got exception: " + JSON.stringify(e));
                 }
             }
+        };
+
+        that.updateBaseUI = function(selectionUpdated) {
+            var properties = null;
+            if (that.allEntities.length === 0) {
+                that.localDimensionsBase = null;
+                that.localPositionBase = null;
+                that.worldDimensionsBase = null;
+                that.worldPositionBase = null;
+                that.worldRotationBase = null;
+            } else if (that.allEntities.length === 1) {
+                properties = Entities.getEntityProperties(that.allEntities[0]);
+                that.localDimensionsBase = properties.dimensions;
+                that.localPositionBase = properties.position;
+                that.localRotationBase = properties.rotation;
+                that.localRegistrationPointBase = properties.registrationPoint;
+    
+                that.worldDimensionsBase = properties.boundingBox.dimensions;
+                that.worldPositionBase = properties.boundingBox.center;
+                that.worldRotationBase = properties.boundingBox.rotation;
+    
+                that.entityTypeBase = properties.type;
+    
+            } else {
+                that.localRotationBase = null;
+                that.localDimensionsBase = null;
+                that.localPositionBase = null;
+    
+                properties = Entities.getEntityProperties(that.allEntities[0]);
+    
+                that.entityTypeBase = properties.type;
+    
+                var brn = properties.boundingBox.brn;
+                var tfl = properties.boundingBox.tfl;
+    
+                for (var i = 1; i < that.allEntities.length; i++) {
+                    properties = Entities.getEntityProperties(that.allEntities[i]);
+                    var bb = properties.boundingBox;
+                    brn.x = Math.min(bb.brn.x, brn.x);
+                    brn.y = Math.min(bb.brn.y, brn.y);
+                    brn.z = Math.min(bb.brn.z, brn.z);
+                    tfl.x = Math.max(bb.tfl.x, tfl.x);
+                    tfl.y = Math.max(bb.tfl.y, tfl.y);
+                    tfl.z = Math.max(bb.tfl.z, tfl.z);
+                }
+    
+                that.localDimensionsBase = null;
+                that.localPositionBase = null;
+                that.worldDimensionsBase = {
+                    x: tfl.x - brn.x,
+                    y: tfl.y - brn.y,
+                    z: tfl.z - brn.z
+                };
+                that.worldPositionBase = {
+                    x: brn.x + (that.worldDimensionsBase.x / 2),
+                    y: brn.y + (that.worldDimensionsBase.y / 2),
+                    z: brn.z + (that.worldDimensionsBase.z / 2)
+                };
+    
+            }
+    
         };
     
         return that;
@@ -501,7 +759,8 @@
                 tablet.emitScriptEvent(JSON.stringify(data));
             }
         }
-        
+        selectionManager.allEntities = polylines;
+        selectionManager.updateBaseUI(true);
         sendUpdate();
     };
     
@@ -536,7 +795,8 @@
         }
         print("Polylines length. " + polylines.length);
         selectionManager.removeEntities(removedIDS);
-
+        selectionManager.allEntities = polylines;
+        selectionManager.updateBaseUI(true);
         var data = {
             type: 'polylinesRemoved',
             ids: removedIDS
@@ -600,7 +860,9 @@
         for (var j = 0; j < selectionManager.selections.length; j++) {
             selectedIDs.push(selectionManager.selections[j]);
         }
-
+        selectionManager.allEntities = polylines;
+        selectionManager.updateBaseUI(true);
+        selectionManager._update(false);
         var data = {
             type: "updatePolylines",
             entities: entities,
@@ -889,7 +1151,8 @@
                 polylines.push(entity);
             }
         });
-
+        selectionManager.allEntities = polylines;
+        selectionManager.updateBaseUI(true);
         // update
         sendUpdate();
     }
@@ -922,10 +1185,8 @@
                 break;
             case "radius":
                 searchRadius = parseFloat(event.radius);
-                print("Search Radius: " + (searchRadius + 0.01) );
                 break;
             case "addSearch":
-                print("Add Search: " + (searchRadius + 0.01) );
                 addPolylinesFromSearch();
                 break;
             case "exportobj":
@@ -952,7 +1213,11 @@
                 break;
             case "clearList":
                 clearPolylineList();
+                selectionManager.clearSelections();
+                selectionManager.clearBaseOverlays();
                 polylines = []
+                selectionManager.allEntities = polylines;
+                selectionManager.updateBaseUI(true);
                 sendUpdate();
                 break;
             default:
@@ -982,6 +1247,9 @@
             } catch (e) {
                 console.warn('Update could not disconnect handSelection');
             }
+            // clear UI
+            selectionManager.clearSelections();
+            selectionManager.clearBaseOverlays();
         }
         button.editProperties({ isActive: isWrapping });
     }
@@ -993,7 +1261,9 @@
         isWrapping = !isWrapping;
 
         if (!isWrapping) {
+            // clear UI
             selectionManager.clearSelections();
+            selectionManager.clearBaseOverlays();
             if (HMD.active) {
                 // Disable hand selection
                 try {
@@ -1048,6 +1318,9 @@
                         Script.update.connect(handSelection);
                     } else {
                         // Disable hand selection
+                        // clear UI
+                        selectionManager.clearSelections();
+                        selectionManager.clearBaseOverlays();
                         try {
                             Script.update.disconnect(handSelection);
                         } catch (e) {
@@ -1092,6 +1365,7 @@
             return;
         }
         selectionManager.clearSelections();
+        selectionManager.clearBaseOverlays();
 
         tablet.webEventReceived.disconnect(onWebEventReceived);
         tablet.screenChanged.disconnect(onTabletScreenChanged);
