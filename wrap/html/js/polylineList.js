@@ -347,7 +347,7 @@ function loaded() {
 
       function resize() {
           // Take up available window space
-          elEntityTableScroll.style.height = window.innerHeight - 207;
+          elEntityTableScroll.style.height = window.innerHeight - 410;
 
           var SCROLLABAR_WIDTH = 21;
           var tds = document.querySelectorAll("#entity-table-body tr:first-child td");
