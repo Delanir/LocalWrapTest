@@ -8,7 +8,7 @@
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
 //
 
-/* global Tablet, Entities, Vec3, Graphics, Script, Quat, Assets, HMD, SPACE_LOCAL */
+/* global Tablet, Entities, Vec3, Graphics, Script, Quat, Assets, HMD, SPACE_LOCAL, Hand */
 
 (function () {
     // Utilities
@@ -50,9 +50,6 @@
         var SCALE_CUBE_CAMERA_DISTANCE_MULTIPLE = 0.015;
 
         var ROTATE_RING_CAMERA_DISTANCE_MULTIPLE = 0.15;
-
-        
-
         var handlePropertiesScaleCubes = {
             size: 0.01,
             color: COLOR_SCALE_CUBE,
@@ -509,7 +506,7 @@
             that._update(true);
         };
 
-        that.clearBaseOverlays  = function() {
+        that.clearBaseOverlays = function() {
             that.setBaseOverlaysVisible(false);
             that.allEntities = [];
             that.updateBaseUI(true);
@@ -664,8 +661,6 @@
 
     var selectionManager = SelectionManager;
 
-    
-
     // web
     var MIN_FILENAME_LENGTH = 4;
     var searchRadius = 10;
@@ -686,7 +681,7 @@
         var found = [];
         leftHandController.update();
         rightHandController.update();
-        if(leftHandController.gripClicked()) {
+        if (leftHandController.gripClicked()) {
             leftHandController.setGripClickedHandled();
             found = Entities.findEntitiesByType("PolyLine", MyAvatar.getLeftPalmPosition(), CONTROLLER_SEARCH_RADIUS);
             
@@ -710,7 +705,7 @@
             }, 300);
 
         }
-        if(rightHandController.gripClicked()) {
+        if (rightHandController.gripClicked()) {
             rightHandController.setGripClickedHandled();
         
             found = Entities.findEntitiesByType("PolyLine", MyAvatar.getRightPalmPosition(), CONTROLLER_SEARCH_RADIUS);
@@ -734,7 +729,7 @@
                 UIOverlaysRight = [];
             }, 300);
         }
-    }
+    };
     
 
     var addEntity = function(entityID, toggleSelection) {
@@ -1031,16 +1026,23 @@
   
                     makeRequest(i, textures[i]);
     
-                    // mtl += "newmtl polyline"+ i + "\nillum 0\nKd 0.00 0.00 0.00\nKa 0.00 0.00 0.00\nTf 1.00 1.00 1.00\nmap_Kd " + filename+ "/texture"+i+".png" + "\nNi 1.00\n";
-                     mtl += "newmtl polyline"+ i + "\nillum 6\nKd 0.50 0.50 0.50\nKa 0.00 0.00 0.00\nmap_Kd "+ filename+ "/texture"+i+".png" + "\nmap_d " + filename+ "/texture"+i+".png" + "\nNi 1.00\n";
-                    // mtl += "newmtl polyline"+ i + "\nillum 6\nKa 0.00 0.00 0.00" + "\nmap_d " + filename+ "/texture"+i+".png" + "\nNi 1.00\n";
+                    // mtl += "newmtl polyline"+ i + 
+                    // "\nillum 0\nKd 0.00 0.00 0.00\nKa 0.00 0.00 0.00\nTf 1.00 1.00 1.00\nmap_Kd " + 
+                    // filename+ "/texture"+i+".png" + "\nNi 1.00\n";
+                    mtl += "newmtl polyline"+ i + 
+                        "\nillum 6\nKd 0.50 0.50 0.50\nKa 0.00 0.00 0.00\nmap_Kd "+ 
+                        filename+ "/texture"+i+".png" + 
+                        "\nmap_d " + filename + "/texture" + i + ".png" + 
+                        "\nNi 1.00\n";
+                    // mtl += "newmtl polyline"+ i + "\nillum 6\nKa 0.00 0.00 0.00" + 
+                    // "\nmap_d " + filename+ "/texture"+i+".png" + "\nNi 1.00\n";
                 
                 }
                 print("Check OBJ file: " + obj);
                 print("Check MTL file: " + mtl);
                 Assets.putAsset({
                     data: mtl,
-                    path: "/"+  filename +".mtl"
+                    path: "/"+ filename +".mtl"
                 }, uploadDataCallback);
             } else {
 
@@ -1080,14 +1082,14 @@
         request.open('GET', textureURL );
         request.timeout = 10000;
         request.send();
-    };
+    }
 
     function uploadDataCallback(url, hash) {
     }
 
     function uploadDataCallbackTextures(url, hash) {
         textureCallbackCount++;
-        if (textureCallbackCount == totalNumberOfTextures) {
+        if (textureCallbackCount === totalNumberOfTextures) {
             Assets.putAsset({
                 data: objInfo,
                 path: "/"+ filename +".obj"
@@ -1215,7 +1217,7 @@
                 clearPolylineList();
                 selectionManager.clearSelections();
                 selectionManager.clearBaseOverlays();
-                polylines = []
+                polylines = [];
                 selectionManager.allEntities = polylines;
                 selectionManager.updateBaseUI(true);
                 sendUpdate();
@@ -1245,7 +1247,7 @@
             try {
                 Script.update.disconnect(handSelection);
             } catch (e) {
-                console.warn('Update could not disconnect handSelection');
+                print('Update could not disconnect handSelection');
             }
             // clear UI
             selectionManager.clearSelections();
@@ -1269,7 +1271,7 @@
                 try {
                     Script.update.disconnect(handSelection);
                 } catch (e) {
-                    console.warn('Update could not disconnect handSelection');
+                    print('Update could not disconnect handSelection');
                 }
             }
             tablet.gotoHomeScreen();
@@ -1290,7 +1292,7 @@
                 try {
                     Script.update.disconnect(handSelection);
                 } catch (e) {
-                    console.warn('Update could not disconnect handSelection');
+                    print('Update could not disconnect handSelection');
                 }
             }
         }
@@ -1324,7 +1326,7 @@
                         try {
                             Script.update.disconnect(handSelection);
                         } catch (e) {
-                            console.warn('Update could not disconnect handSelection');
+                            print('Update could not disconnect handSelection');
                         }
                     }
                 } 
@@ -1375,7 +1377,7 @@
         try {
             Script.update.disconnect(handSelection);
         } catch (e) {
-            console.warn('Update could not disconnect handSelection');
+            print('Update could not disconnect handSelection');
         }
     }
 
