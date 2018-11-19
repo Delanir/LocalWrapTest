@@ -667,7 +667,7 @@
     var filename = "wrapObject";
     var FILE_NAME_PREFIX = "wrapObject";
     var WRAPKEY = "wrap/filenumber";
-    var isUsingTextures = false;
+    var isUsingTextures = true;
     var textureCallbackCount = 0;
     var totalNumberOfTextures = 0;
     var objInfo;
@@ -1040,6 +1040,7 @@
                 }
                 print("Check OBJ file: " + obj);
                 print("Check MTL file: " + mtl);
+                objInfo = obj;
                 Assets.putAsset({
                     data: mtl,
                     path: "/"+ filename +".mtl"
