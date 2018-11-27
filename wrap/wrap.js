@@ -934,7 +934,7 @@
                     var vertexIndex = i * 2;
                     if (i < linePoints.length - 1) {
                         tangent = Vec3.subtract(linePoints[i + 1], linePoints[i]);
-                        binormal = Vec3.multiply(Vec3.normalize(Vec3.cross(tangent, normals[i])), strokeWidths[i]);
+                        binormal = Vec3.multiply(Vec3.normalize(Vec3.cross(normals[i], tangent)), strokeWidths[i]);
                         if (isNaN(binormal.x)) {
                             continue;
                         }
@@ -985,6 +985,9 @@
                             }
                             increaseValue = increaseValue > 0 ? increaseValue : 1;
                             uCoord += increaseValue;
+                        } else {
+                            // If the stroke width is constant then the textures should keep the aspect ratio along the line
+                            uCoord = ((1.0 / textureAspectRatio) * accumulatedDistance) / strokeWidth;
                         }
                     }
                     
@@ -1028,11 +1031,19 @@
   
                     makeRequest(i, textures[i]);
 
+                    // mtl += "newmtl polyline"+ i + 
+                    //     "\nillum 4\nKd 1.00 1.00 1.00\nKa 0.00 0.00 0.00\nTf 1.00 1.00 1.00\nmap_Kd "+ 
+                    //     filename+ "/texture"+i+".png" + 
+                    //     "\nmap_d " + filename + "/texture" + i + ".png" + 
+                    //     "\nNi 1.00\n";
                     mtl += "newmtl polyline"+ i + 
-                        "\nillum 4\nKd 1.00 1.00 1.00\nKa 0.00 0.00 0.00\nTf 1.00 1.00 1.00\nmap_Kd "+ 
+                        "\nNs 10.0000\nNi 1.5000\nd 0.5\nTr 0.0000\nTf 1.0000 1.0000 1.0000\nillum 2" +
+                        "\nKa 0.00 0.00 0.00\nKd 0.5880 0.5880 0.5880\nKs 0.0000 0.0000 0.0000" +
+                        "\nKe 0.0000 0.0000 0.0000\nmap_Ka "+ 
                         filename+ "/texture"+i+".png" + 
-                        "\nmap_d " + filename + "/texture" + i + ".png" + 
-                        "\nNi 1.00\n";
+                        "\nmap_Kd " + filename + "/texture" + i + ".png" + 
+                        "\nmap_d " + filename + "/texture" + i + ".png\n";
+
                 }
                 if (wantDebug) {
                     print("Check OBJ file: " + obj);
